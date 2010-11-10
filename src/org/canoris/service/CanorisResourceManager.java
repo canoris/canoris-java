@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.client.ClientProtocolException;
-import org.canoris.CanorisConManager;
 import org.canoris.resource.types.CanFile;
 import org.canoris.resource.types.CanorisResource;
 
@@ -34,7 +33,7 @@ public class CanorisResourceManager {
 		return conManager.uploadFile(filePath);
 	}
 	
-	public List<CanFile> getFiles() throws ClientProtocolException, IOException {
+	public List<CanorisResource> getFiles() throws ClientProtocolException, IOException {
 		return CanorisConManager.getInstance().getFiles();
 	}
 	

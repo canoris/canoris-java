@@ -24,20 +24,17 @@ public class CanFile extends CanorisResource {
 	 * Helper methods to get from the properties map the given property
 	 */
 	@SuppressWarnings("unchecked")
-	public Map<String, String> getConversions() {
-		
+	public Map<String, String> getConversions() {	
 		return (Map<String, String>) properties.get(CONVERSIONS);
 	}
 	
 	@SuppressWarnings("unchecked")
 	public Map<String, String> getVisualizations() {
-		
 		return (Map<String, String>) properties.get(VISUALIZATIONS);
 	}
 	
 	@SuppressWarnings("unchecked")
 	public Map<String, String> getAnalysis() {
-		
 		return (Map<String, String>) properties.get(ANALYSIS);
 	}
 	
