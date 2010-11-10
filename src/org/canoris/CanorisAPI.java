@@ -2,8 +2,8 @@ package org.canoris;
 
 public class CanorisAPI {
 	
-	// Hardcoded base URL
-	private final static String baseURL = "http://api.canoris.com";
+	// base URL
+	private String baseURL = "api.canoris.com";
 	
 	// The api_key for canoris
 	private String apiKey = "";
@@ -20,9 +20,18 @@ public class CanorisAPI {
 	    return instance;
 	}
 
-	// GETTERS && SETTERS
+	
+	/************** GETTERS && SETTERS ***************/
 	public String getApiKey() {
 		return apiKey;
+	}
+
+	public String getBaseURL() {
+		return baseURL;
+	}
+
+	public void setBaseURL(String baseURL) {
+		this.baseURL = baseURL;
 	}
 
 	public void setApiKey(String apiKey) {
