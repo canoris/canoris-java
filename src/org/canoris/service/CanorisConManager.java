@@ -36,6 +36,7 @@ import org.canoris.CanorisAPI;
 import org.canoris.Constants;
 import org.canoris.resource.types.CanFile;
 import org.canoris.resource.types.CanorisResource;
+import org.canoris.util.Pager;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -144,8 +145,12 @@ public class CanorisConManager {
         	HttpEntity resEntity = response.getEntity();
         	canFile = new CanFile();
             ObjectMapper mapper = new ObjectMapper(); // can reuse, share globally
-            List<CanorisResource> map = mapper.readValue(EntityUtils.toString(resEntity), 
-														new TypeReference<List<CanorisResource>>() { });
+            // FIXME: Mapping fails as it should, need a custom mapper, there is no files property
+            //		  for templates it would be templates property
+            //		  Alternative: superclass with total_files,next,previous,ref
+            //		  			   and subclass with the specific files/collections/templates field
+            Pager map = mapper.readValue(EntityUtils.toString(resEntity), 
+														new TypeReference<Pager>() { });
 			//canFile.setProperties(map);
 			
 			// TODO: what exactly does consumeContent do, releases resources???

@@ -9,21 +9,21 @@ import java.util.Map;
  *
  */
 public class Pager {
-	private int totalFiles;
+	private String total_files;
 	private String ref;
 	private String next;
 	private String before;
 	
 	// All the contects are here, different resource types will differ in this
 	// hence make it as generic as possible by using a map
-	private Map<String,Object> contents;
+	private Object files;
 	
 	//----------- GETTERS && SETTERS
-	public int getTotalFiles() {
-		return totalFiles;
+	public String getTotal_files() {
+		return total_files;
 	}
-	public void setTotalFiles(int totalFiles) {
-		this.totalFiles = totalFiles;
+	public void setTotal_files(String total_files) {
+		this.total_files = total_files;
 	}
 	public String getRef() {
 		return ref;
@@ -43,11 +43,12 @@ public class Pager {
 	public void setBefore(String before) {
 		this.before = before;
 	}
-	public Map<String, Object> getContents() {
-		return contents;
+	public Object getFiles() {
+		return files;
 	}
-	public void setContents(Map<String, Object> contents) {
-		this.contents = contents;
+	public void setFiles(Object files) {
+		this.files = files;
 	}
+	
 	
 }
