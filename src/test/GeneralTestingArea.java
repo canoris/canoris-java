@@ -2,23 +2,11 @@ package test;
 
 import java.io.IOException;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.util.EntityUtils;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 
 public class GeneralTestingArea {
 
@@ -28,6 +16,30 @@ public class GeneralTestingArea {
 	 * @throws ClientProtocolException 
 	 */
 	public static void main(String[] args) throws ClientProtocolException, IOException {
+		String content = "{" +
+			    "\"ref\": \"http://api.canoris.com/processing/templates/vocaloid\"," +
+			    "\"name\": \"vocaloid\"," +
+			    "\"template\": [" +
+			    				"{" +
+			    					"\"operation\": \"vocaloid\"," + 
+			    					"\"parameters\": {" +
+			    						"\"voice\": \"arnau\"," + 
+			    						"\"sequence\": \"{{ my_xml }}\"" +
+			    					"}" +
+			    				"}" +
+			    			  "]" +
+			    			"}";
+		
+		
+		ObjectMapper m = new ObjectMapper();
+		// can either use mapper.readTree(JsonParser), or bind to JsonNode
+		JsonNode rootNode = m.readValue(content, JsonNode.class);
+		// ensure that "last name" isn't "Xmler"; if is, change to "Jsoner"
+		JsonNode templateNode = rootNode.path("template");
+		Object test = templateNode.path("parameters");
+		ObjectNode t2 =(ObjectNode) templateNode.get(0);
+		Object t3 = t2.path("parameters").path("voice");
+		/*
 		HttpHost proxy = new HttpHost("proxy.upf.edu", 80, "http");
 		// Schemes
         SchemeRegistry supportedSchemes = new SchemeRegistry();
@@ -52,7 +64,7 @@ public class GeneralTestingArea {
         
         HttpResponse res = httpClient.execute(target, get);
 		String resString = EntityUtils.toString(res.getEntity());
-
+		*/
 	}
 
 }

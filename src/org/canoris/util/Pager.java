@@ -1,5 +1,6 @@
 package org.canoris.util;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -8,15 +9,63 @@ import java.util.Map;
  * @author stelios
  *
  */
+/*
+ * This class is actually a hack. The logic is this.
+ * Since the different types of collections actually return different content we cannot use
+ * a generic collection object for all. So what happens now is:
+ * FILES RESOURCE
+ * 	It will only fill up the files field
+ * TEMPLATES RESOURCE
+ * 	It will only fill up the templates 
+ * 
+ * The rest of the fields are common
+ * 
+ * OPTIONS
+ * 1)
+ * Custom deserializer so this class would have a contents field 
+ * The deserializer should read the files or templates property and set them to the contents field.
+ * NOTE that the files is recognized as JSON_ARRAY while the templates as JSON_OBJECT
+ * 
+ * 2) 
+ * Maybe Jackson can understand the following:
+ * Having a superclass with the total_files/ref/next/before and subclasses with files/templates etc.
+ * Will it use the right subclass? check Jackson Polymorphic Type Handling
+ * 
+ * 3)
+ * Create a custom mapper. Map response to Map<String,Object> and use the customMapper
+ * to check keys and maps accordingly
+ * 
+ */
 public class Pager {
+	// TODO: check annotation for these type of field names
 	private String total_files;
+	private String total_collections;
 	private String ref;
 	private String next;
-	private String before;
+	private String previous;
 	
-	// All the contects are here, different resource types will differ in this
-	// hence make it as generic as possible by using a map
-	private Object files;
+	private List files;
+	private Map templates;
+	private List collections;
+
+	public List getFiles() {
+		return files;
+	}
+	public void setFiles(List files) {
+		this.files = files;
+	}		
+	public Map getTemplates() {
+		return templates;
+	}
+	public void setTemplates(Map templates) {
+		this.templates = templates;
+	}
+	public List getCollections() {
+		return collections;
+	}
+	public void setCollections(List collections) {
+		this.collections = collections;
+	}
 	
 	//----------- GETTERS && SETTERS
 	public String getTotal_files() {
@@ -24,6 +73,12 @@ public class Pager {
 	}
 	public void setTotal_files(String total_files) {
 		this.total_files = total_files;
+	}
+	public String getTotal_collections() {
+		return total_collections;
+	}
+	public void setTotal_collections(String totalCollections) {
+		total_collections = totalCollections;
 	}
 	public String getRef() {
 		return ref;
@@ -37,18 +92,10 @@ public class Pager {
 	public void setNext(String next) {
 		this.next = next;
 	}
-	public String getBefore() {
-		return before;
+	public String getPrevious() {
+		return previous;
 	}
-	public void setBefore(String before) {
-		this.before = before;
+	public void setPrevious(String previous) {
+		this.previous = previous;
 	}
-	public Object getFiles() {
-		return files;
-	}
-	public void setFiles(Object files) {
-		this.files = files;
-	}
-	
-	
 }
