@@ -1,4 +1,4 @@
-package org.canoris;
+package com.canoris;
 
 public class Constants {
 	public final static String URI_FILES = "/files";

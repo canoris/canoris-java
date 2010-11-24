@@ -1,4 +1,4 @@
-package org.canoris.service;
+package com.canoris;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,9 +7,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.client.ClientProtocolException;
-import org.canoris.resource.types.CanFile;
-import org.canoris.resource.types.CanorisResource;
-import org.canoris.util.Pager;
+import org.codehaus.jackson.JsonNode;
+
+import com.canoris.resources.CanorisFile;
+import com.canoris.resources.CanorisResource;
+import com.canoris.resources.Pager;
 
 /*
  * This essentially is just a facade (kind off...) to the CanorisConManager.
@@ -47,26 +49,44 @@ public class CanorisResourceManager {
 	 * @return Pager
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public Pager getFiles() throws ClientProtocolException, IOException {
+	public Pager getFiles() throws ClientProtocolException, IOException, URISyntaxException {
 		return CanorisConManager.getInstance().getFiles();
 	}
 	
 	/**
-	 * Returns the input stream representing  
-	 * the original upload audio file.
+	 * Returns a Map representing  the requested file.
+	 * 
+	 * @param file
+	 * @return Map<String,Object>
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException 
+	 */
+	public Map<String,Object> getFile(CanorisFile file) throws ClientProtocolException, IOException, URISyntaxException {
+		if (file == null)
+			return null;
+		Map<String, String> params = new HashMap<String, String>(2);
+		params.put("fileKey", file.getKey());
+		return CanorisConManager.getInstance().getResourceAsMap(params, Constants.URI_FILE);
+	}
+	/**
+	 * Return an InputStream representing the requested file.
+	 * The user has to manually handle the inputStream.
 	 * 
 	 * @param file
 	 * @return InputStream
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException
 	 */
-	public InputStream getFile(CanFile file) throws ClientProtocolException, IOException {
+	public InputStream downloadFile(CanorisFile file) throws ClientProtocolException, IOException, URISyntaxException {
 		if (file == null)
 			return null;
 		Map<String, String> params = new HashMap<String, String>(2);
 		params.put("fileKey", file.getKey());
-		return CanorisConManager.getInstance().getResource(params, "file");
+		return CanorisConManager.getInstance().getResource(params, Constants.URI_FILE_SERVE);
 	}
 	/**
 	 * Returns an input stream representing 
@@ -77,14 +97,15 @@ public class CanorisResourceManager {
 	 * @return InputStream
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public InputStream getConversion(CanFile file, String conversionName) throws ClientProtocolException, IOException {
+	public InputStream getConversion(CanorisFile file, String conversionName) throws ClientProtocolException, IOException, URISyntaxException {
 		if (file == null)
 			return null;
 		Map<String, String> params = new HashMap<String, String>(2);
 		params.put("fileKey", file.getKey());
 		params.put("name", conversionName);
-		return CanorisConManager.getInstance().getResource(params, "conversion");
+		return CanorisConManager.getInstance().getResource(params, Constants.URI_FILE_CONVERSION);
 	}
 	/**
 	 * Gets the conversions of the file you pass
@@ -93,25 +114,26 @@ public class CanorisResourceManager {
 	 * @return Map<String,String> the conversions
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public Map<String, Object> getConversions(CanFile file) throws ClientProtocolException, IOException {
+	public Map<String, Object> getConversions(CanorisFile file) throws ClientProtocolException, IOException, URISyntaxException {
 		if (file == null)
 			return null;
 		Map<String, String> params = new HashMap<String, String>(1);
 		params.put("fileKey", file.getKey());
-		return CanorisConManager.getInstance().getResources(params, "conversions");
+		return CanorisConManager.getInstance().getResources(params, Constants.URI_FILE_CONVERSIONS);
 	}
 	
 	// TODO: this should return a JsonNode since the analysis is a deeply 
 	//		 nested Json object. Ask Vincent
-	public Map<String, Object> getAnalysis(CanFile file, String filter) throws ClientProtocolException, IOException {
+	public Map<String, Object> getAnalysis(CanorisFile file, String filter) throws ClientProtocolException, IOException, URISyntaxException {
 		if (file == null)
 			return null;
 		Map<String, String> params = new HashMap<String, String>(1);
 		params.put("fileKey", file.getKey());
 		params.put("filter", filter);
 		
-		return CanorisConManager.getInstance().getResourceAsMap(params, "analysis");
+		return CanorisConManager.getInstance().getResourceAsMap(params, Constants.URI_FILE_ANALYSIS);
 	}
 	/**
 	 * Gets the visualization of the passed file
@@ -121,14 +143,15 @@ public class CanorisResourceManager {
 	 * @return An InputStream representing the visualization or null
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public InputStream getVisualization(CanFile file, String name) throws ClientProtocolException, IOException {
+	public InputStream getVisualization(CanorisFile file, String name) throws ClientProtocolException, IOException, URISyntaxException {
 		if (file == null)
 			return null;
 		Map<String, String> params = new HashMap<String, String>(2);
 		params.put("fileKey", file.getKey());
 		params.put("name", name);
-		return CanorisConManager.getInstance().getResource(params, "visualization");
+		return CanorisConManager.getInstance().getResource(params, Constants.URI_FILE_VISUALIZATION);
 	}
 	/**
 	 * 
@@ -136,13 +159,14 @@ public class CanorisResourceManager {
 	 * @return
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public Map<String,Object> getVisualizations(CanFile file) throws ClientProtocolException, IOException {
+	public Map<String,Object> getVisualizations(CanorisFile file) throws ClientProtocolException, IOException, URISyntaxException {
 		if (file == null)
 			return null;
 		Map<String, String> params = new HashMap<String, String>(1);
 		params.put("fileKey", file.getKey());
-		return CanorisConManager.getInstance().getResources(params, "visualizations");
+		return CanorisConManager.getInstance().getResources(params, Constants.URI_FILE_VISUALIZATIONS);
 	}
 	
 	/* ***************************** TEMPLATES ***************************** */
@@ -153,41 +177,49 @@ public class CanorisResourceManager {
 	 * @return Map<String, Object>
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public Map<String, Object> getTemplates() throws ClientProtocolException, IOException {
-		return CanorisConManager.getInstance().getResources(null, "templates");
+	public Map<String,Object> getTemplates() throws ClientProtocolException, IOException, URISyntaxException {
+		Map<String, String> params = new HashMap<String, String>();
+		return CanorisConManager.getInstance().getResources(params, Constants.URI_TEMPLATES);
 	}
 	/**
 	 * Creates a template and returns the response or null
+	 * 
+	 * TODO: This should return a JsonNode??
 	 * 
 	 * @param template
 	 * @return Map<String,Object>
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
 	public Map<String,Object> createTemplate(String templateName, String templateContent) 
-										throws ClientProtocolException, IOException {
+										throws ClientProtocolException, IOException, URISyntaxException {
 		Map<String,String> postParams = new HashMap<String, String>(1);
 		postParams.put("name", templateName);
 		postParams.put("template", templateContent);
 		
-		return CanorisConManager.getInstance().createResource(null, postParams, "templates");
+		Map<String, String> params = new HashMap<String, String>();
+		return CanorisConManager.getInstance().createResource(params, postParams, Constants.URI_TEMPLATES);
 	}
 	/**
 	 * 
 	 * @param template
 	 * @param templateName
-	 * @return
+	 * @return JSonNode
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public Map<String,Object> updateTemplate(String templateContent, String templateName) 
-												throws ClientProtocolException, IOException {
-		Map<String,String> params = new HashMap<String, String>(2);
-		params.put("name", templateName);
-		params.put("template", templateContent);
+	public JsonNode updateTemplate(String templateContent, String templateName) 
+												throws ClientProtocolException, IOException, URISyntaxException {
+		Map<String,String> urlParams = new HashMap<String, String>(2);
+		urlParams.put("templateName", templateName);
+		Map<String,String> putParams = new HashMap<String, String>(2);
+		putParams.put("template", templateContent);
 		
-		return CanorisConManager.getInstance().updateResource(params, "template");
+		return CanorisConManager.getInstance().updateResource(urlParams, putParams, Constants.URI_TEMPLATE);
 	}
 	/**
 	 * Deletes the give template
@@ -196,22 +228,24 @@ public class CanorisResourceManager {
 	 * @param templateName
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public void deleteTemplate(String templateName) throws ClientProtocolException, IOException {
+	public void deleteTemplate(String templateName) throws ClientProtocolException, IOException, URISyntaxException {
 		Map<String,String> params = new HashMap<String,String>(1);
-		params.put("name", templateName);
+		params.put("templateName", templateName);
 		
-		CanorisConManager.getInstance().deleteResource(params, "template");
+		CanorisConManager.getInstance().deleteResource(params, Constants.URI_TEMPLATE);
 	}
 	
 	/* ***************************** TASKS ***************************** */
 	public Map<String,Object> createTask(String taskName, String taskContent) 
-									throws ClientProtocolException, IOException {
+									throws ClientProtocolException, IOException, URISyntaxException {
+		Map<String,String> params = new HashMap<String,String>();
 		Map<String,String> postParams = new HashMap<String,String>(2);
 		postParams.put("template", taskName);
 		postParams.put("parameters", taskContent);
 		
-		return CanorisConManager.getInstance().createResource(null, postParams, "task");
+		return CanorisConManager.getInstance().createResource(params, postParams, Constants.URI_TASK);
 	}
 	/**
 	 * Get the task that corresponds to the taskId. 
@@ -221,12 +255,13 @@ public class CanorisResourceManager {
 	 * @return Map<String,Object>
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public Map<String,Object> getTask(String taskId) throws ClientProtocolException, IOException {
+	public Map<String,Object> getTask(String taskId) throws ClientProtocolException, IOException, URISyntaxException {
 		Map<String,String> params = new HashMap<String,String>(1);
 		params.put("taskId", taskId);
 
-		return CanorisConManager.getInstance().getResourceAsMap(params, "tasks");
+		return CanorisConManager.getInstance().getResourceAsMap(params, Constants.URI_TASK);
 	}
 	
 	/* ***************************** LANGUAGE ***************************** */
@@ -238,77 +273,132 @@ public class CanorisResourceManager {
 	 * @return Map<String,Object>
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
 	public Map<String,Object> getText2Phon(String text, String language) 
-										throws ClientProtocolException, IOException {
+										throws ClientProtocolException, IOException, URISyntaxException {
 		Map<String,String> params = new HashMap<String,String>(2);
 		params.put("text", text);
 		params.put("language", language);
 		
-		return CanorisConManager.getInstance().getResourceAsMap(params, "text2Phoneme");
+		return CanorisConManager.getInstance().getResourceAsMap(params, Constants.URI_PHONEMES);
 	}
 	
 	/* ***************************** COLLECTION ***************************** */
-	public Pager getCollections() throws ClientProtocolException, IOException {
+	/**
+	 * 
+	 */
+	public Pager getCollections() throws ClientProtocolException, IOException, URISyntaxException {
 		Map<String,String> params = new HashMap<String, String>(0);
-		return CanorisConManager.getInstance().getPagedResults(params, COLLECTIONS);
+		return CanorisConManager.getInstance().getPagedResults(params, Constants.URI_COLLECTIONS);
 	}
+	/**
+	 * 
+	 * @param collectionKey
+	 * @return Map<String,Object>
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
 	public Map<String,Object> getCollection(String collectionKey) 
-										throws ClientProtocolException, IOException {
+										throws ClientProtocolException, IOException, URISyntaxException {
 		Map<String,String> params = new HashMap<String,String>(1);
 		params.put("collectionKey", collectionKey);
 		
-		return CanorisConManager.getInstance().getResourceAsMap(params, "collection");
+		return CanorisConManager.getInstance().getResourceAsMap(params, Constants.URI_COLLECTION);
 	}
+	/**
+	 * 
+	 * @param name
+	 * @param license
+	 * @param visibility
+	 * @return
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException 
+	 */
 	public Map<String,Object> createCollection(String name, String license, String visibility) 
-											throws ClientProtocolException, IOException {
+											throws ClientProtocolException, IOException, URISyntaxException {
+		Map<String,String> params = new HashMap<String,String>(1);
 		Map<String,String> postParams = new HashMap<String,String>(3);
 		postParams.put("name", name);
 		postParams.put("license", license);
 		postParams.put("public", visibility);
 		
-		return CanorisConManager.getInstance().createResource(null, postParams, COLLECTIONS);
+		return CanorisConManager.getInstance().createResource(params, postParams, Constants.URI_COLLECTIONS);
 	}
+	/**
+	 * Deletes the collection. This method does not return a value. 
+	 * If no exception is thrown the operation will be successful.
+	 * 
+	 * @param collectionKey
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException 
+	 */
 	public void deleteCollection(String collectionKey) 
-							throws ClientProtocolException, IOException {
+							throws ClientProtocolException, IOException, URISyntaxException {
 		Map<String,String> params = new HashMap<String, String>(1);
 		params.put("collectionKey", collectionKey);
 		
-		CanorisConManager.getInstance().deleteResource(params, "collection");
+		CanorisConManager.getInstance().deleteResource(params, Constants.URI_COLLECTION);
 	}
 	
 	/* ***************************** FILE COLLECTION ***************************** */
-	public Pager getCollectionFiles(String collectionKey) throws ClientProtocolException, IOException {
+	/**
+	 * 
+	 */
+	public Pager getCollectionFiles(String collectionKey) throws ClientProtocolException, IOException, URISyntaxException {
 		Map<String,String> params = new HashMap<String, String>(1);
 		params.put("collectionKey", collectionKey);
 		
-		return CanorisConManager.getInstance().getPagedResults(params, "collectionFiles");
+		return CanorisConManager.getInstance().getPagedResults(params, Constants.URI_COLLECTION_FILES);
 	}
-	public void addFileToCollection(String collectionKey, CanFile file) 
-			throws ClientProtocolException, IOException {
+	/**
+	 * Adds a file to the given collection.
+	 * 
+	 * @param collectionKey
+	 * @param file
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException 
+	 */
+	public void addFileToCollection(String collectionKey, CanorisFile file) 
+			throws ClientProtocolException, IOException, URISyntaxException {
 		if (file != null) {
 			Map<String,String> uriParams = new HashMap<String, String>(1);
 			uriParams.put("collectionKey", collectionKey);
+			uriParams.put("filekey", file.getKey());
 			Map<String,String> postParams = new HashMap<String, String>(1);
-			postParams.put("filekey", file.getKey());
 			
-			CanorisConManager.getInstance().createResource(uriParams, postParams, "collectionFiles");
+			CanorisConManager.getInstance().createResource(uriParams, postParams, Constants.URI_COLLECTION_FILES);
 		}
 	}
-	public Map<String,Object> getCollectionFile(String collectionKey, CanFile file) 
-											throws ClientProtocolException, IOException {
+	/**
+	 * 
+	 * @param collectionKey
+	 * @param file
+	 * @return Map<String,Object>
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	public Map<String,Object> getCollectionFile(String collectionKey, CanorisFile file) 
+											throws ClientProtocolException, 
+												   IOException, 
+												   URISyntaxException {
 		if (file == null)
 			return null;
 		Map<String,String> params = new HashMap<String, String>();
 		params.put("fileKey", file.getKey());
 		params.put("collectionKey", collectionKey);
 		
-		return CanorisConManager.getInstance().getResourceAsMap(params, "collectionFile");
+		return CanorisConManager.getInstance().getResourceAsMap(params, Constants.URI_COLLECTION_FILE);
 	}
 	/* ***************************** FILE COLLECTION ***************************** */
-	public Map<String,Object> getSimilaritySearch(String collectionKey, CanFile file,
+	public Map<String,Object> getSimilaritySearch(String collectionKey, CanorisFile file,
 												  String preset, String results) 
-											  throws ClientProtocolException, IOException {
+											  throws ClientProtocolException, IOException, URISyntaxException {
 		if (file == null)
 			return null;
 		Map<String,String> params = new HashMap<String, String>();
@@ -317,25 +407,27 @@ public class CanorisResourceManager {
 		params.put("preset", preset);
 		params.put("results", results);
 		
-		return CanorisConManager.getInstance().getResourceAsMap(params, "collectionSimilar");
+		return CanorisConManager.getInstance().getResourceAsMap(params, Constants.URI_COLLECTION_SIMILAR);
 	}
 	/* ***************************** PAGING ***************************** */
 	// What if there is no after or before page
-	public Pager getNextPage(Pager pager) throws ClientProtocolException, IOException {
+	public Pager getNextPage(Pager pager) 
+						throws ClientProtocolException, 
+							   IOException, 
+							   URISyntaxException {
 		Map<String, String> params = new HashMap<String, String>();
-		String page = pager.getNext();
-		page = page.substring(page.indexOf(".com/") + 4);
-		params.put("page", page);
+		params.put("page", pager.getNext());
 		
-		return CanorisConManager.getInstance().getPagedResults(params, "page");
+		return CanorisConManager.getInstance().getPagedResults(params, null);
 	}
-	public Pager getPreviousPage(Pager pager) throws ClientProtocolException, IOException {
+	public Pager getPreviousPage(Pager pager) 
+							throws ClientProtocolException, 
+								   IOException, 
+								   URISyntaxException {
 		Map<String, String> params = new HashMap<String, String>();
-		String page = pager.getPrevious();
-		page = page.substring(page.indexOf(".com/") + 4);
-		params.put("page", page);
+		params.put("page", pager.getPrevious());
 		
-		return CanorisConManager.getInstance().getPagedResults(params, "page");
+		return CanorisConManager.getInstance().getPagedResults(params, null);
 	}
 	/**
 	 * 

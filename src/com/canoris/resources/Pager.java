@@ -1,4 +1,4 @@
-package org.canoris.util;
+package com.canoris.resources;
 
 import java.util.List;
 import java.util.Map;

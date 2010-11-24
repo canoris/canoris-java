@@ -2,9 +2,10 @@ package test;
 
 import java.util.Map;
 
-import org.canoris.resource.types.CanFile;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+
+import com.canoris.resources.CanorisFile;
 
 public class TestJsonMapping {
 	
@@ -34,7 +35,7 @@ public class TestJsonMapping {
 				// Use Jackson Gson could not to map within map
 				ObjectMapper mapper = new ObjectMapper(); // can reuse, share globally
 				Map<String,Object> t = mapper.readValue(testJsonObj, new TypeReference<Map<String,Object>>() { });
-				CanFile canorisFileResource = new CanFile();
+				CanorisFile canorisFileResource = new CanorisFile();
 				canorisFileResource.setProperties(t);
 				System.out.println("Parse result : " + canorisFileResource.getProperties().get("collections"));
 	 }

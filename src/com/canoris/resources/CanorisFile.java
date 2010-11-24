@@ -1,8 +1,8 @@
-package org.canoris.resource.types;
+package com.canoris.resources;
 
 import java.util.Map;
 
-public class CanFile extends CanorisResource {
+public class CanorisFile extends CanorisResource {
 	
 	private final static String CONVERSIONS = "conversions";
 	private final static String VISUALIZATIONS = "visualizations";
@@ -10,13 +10,33 @@ public class CanFile extends CanorisResource {
 
 	private Map<String, Object> properties = null;
 	
+	/**
+	 * Empty default constructor
+	 */
+	public CanorisFile() {
+		super();
+	}
+	
+	/**
+	 * Constructor that checks for "http" at the start of the constructors parameter 
+	 * and if found sets the ref of the file. If not it considers it is the key of
+	 * the file and sets that.
+	 * @param property
+	 */
+	public CanorisFile(String property) {
+		if (property.startsWith("http")) {
+			super.setRef(property);
+		} else {
+			super.setKey(property);
+		}
+	}
+	
 	public Map<String, Object> getProperties() {
 		return properties;
 	}
 
 	public void setProperties(Map<String, Object> properties) {
 		this.properties = properties;
-		// this.fileKey = (String) properties.get("key");
 	}
 	
 	

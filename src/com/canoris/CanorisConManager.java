@@ -1,10 +1,13 @@
-package org.canoris.service;
+package com.canoris;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.antlr.stringtemplate.StringTemplate;
@@ -13,13 +16,17 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.utils.URIUtils;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.PlainSocketFactory;
@@ -31,19 +38,19 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.util.EntityUtils;
-import org.canoris.CanorisAPI;
-import org.canoris.Constants;
-import org.canoris.resource.types.CanFile;
-import org.canoris.util.Pager;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+
+import com.canoris.resources.CanorisFile;
+import com.canoris.resources.Pager;
 
 /*
  * TODO: 1) javadoc public methods
@@ -88,7 +95,7 @@ public class CanorisConManager {
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 */
-	public CanFile uploadFile(String path) throws URISyntaxException,
+	public CanorisFile uploadFile(String path) throws URISyntaxException,
 			ClientProtocolException, IOException {
 		HttpClient httpClient;
 		HttpHost target = new HttpHost(CanorisAPI.getInstance().getBaseURL(),
@@ -121,11 +128,11 @@ public class CanorisConManager {
 		// System.out.println("Response : " + response);
 
 		HttpEntity resEntity = response.getEntity();
-		CanFile canFile = null;
+		CanorisFile canFile = null;
 		// TODO: make a mapper class that encapsulates this process, KEEP IT
 		// CLEAN!!!
 		if (resEntity != null) {
-			canFile = new CanFile();
+			canFile = new CanorisFile();
 			ObjectMapper mapper = new ObjectMapper(); // can reuse, share
 			// globally
 			Map<String, Object> map = mapper.readValue(EntityUtils
@@ -148,8 +155,9 @@ public class CanorisConManager {
 	 * @return Pager
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public Pager getFiles() throws ClientProtocolException, IOException {
+	public Pager getFiles() throws ClientProtocolException, IOException, URISyntaxException {
 		Map<String, String> params = new HashMap<String, String>();
 		HttpResponse response = doGet(params, "files");
 		Pager pager = null;
@@ -178,9 +186,13 @@ public class CanorisConManager {
 	 * @return InputStream
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
 	public InputStream getResource(Map<String, String> params, String resourceType) 
-									throws ClientProtocolException, IOException {
+									throws 
+										ClientProtocolException, 
+										IOException, 
+										URISyntaxException {
 		HttpResponse response = doGet(params, resourceType);
 		InputStream in = null;
 		if (response.getEntity() != null) {
@@ -197,9 +209,13 @@ public class CanorisConManager {
 	 * @return Map<String,Object> the representation of the resource
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
 	public Map<String,Object> getResourceAsMap(Map<String, String> params, String resourceType) 
-										throws ClientProtocolException, IOException {
+										throws 
+											ClientProtocolException, 
+											IOException, 
+											URISyntaxException {
 		HttpResponse response = doGet(params, resourceType);
 		Map<String,Object> responseMap = null;
 		if (response.getEntity() != null) {
@@ -218,10 +234,13 @@ public class CanorisConManager {
 	 * @return
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
 	public Map<String, Object> getResources(Map<String, String> params,
 											String resourceType)
-												throws ClientProtocolException, IOException {
+										throws ClientProtocolException, 
+											   IOException, 
+											   URISyntaxException {
 		HttpResponse response = doGet(params, resourceType);
 		Map<String, Object> resources = null;
 		if (response.getEntity() != null) {
@@ -244,13 +263,15 @@ public class CanorisConManager {
 	 * @throws JsonMappingException
 	 * @throws ParseException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
 	public JsonNode getResourcesAsTree(Map<String, String> params,
 									   String resourceType) 
 									throws JsonParseException, 
 										   JsonMappingException, 
 										   ParseException, 
-										   IOException {
+										   IOException, 
+										   URISyntaxException {
 		HttpResponse response = doGet(params, resourceType);
 		JsonNode resources = null;
 		if (response.getEntity() != null) {
@@ -268,11 +289,12 @@ public class CanorisConManager {
 	 * @return Map<String,Object>
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
 	public Map<String,Object> createResource(Map<String,String> uriParams,
 											 Map<String,String> postParams,
 											 String resourceType) 
-											throws ClientProtocolException, IOException {
+											throws ClientProtocolException, IOException, URISyntaxException {
 		HttpResponse response = doPost(uriParams, postParams, resourceType);
 		Map<String, Object> responseMap = null;
 		if (response.getEntity() != null) {
@@ -287,30 +309,52 @@ public class CanorisConManager {
 	/**
 	 * Updates a resource. It actually executes a PUT.
 	 * 
-	 * @param params
+	 * @param urlParams
+	 * @param putParams
 	 * @param resourceType
-	 * @return
+	 * @return JsonNode
 	 * @throws ClientProtocolException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public Map<String,Object> updateResource(Map<String,String> params, String resourceType) throws ClientProtocolException, IOException {
-		HttpResponse response = doPut(params, resourceType);
-		Map<String, Object> responseMap = null;
+	public JsonNode updateResource(Map<String,String> urlParams,
+											 Map<String,String> putParams, 
+											 String resourceType) throws ClientProtocolException, IOException, URISyntaxException {
+		HttpResponse response = doPut(urlParams, putParams, resourceType);
+		JsonNode jsonNode = null;
 		if (response.getEntity() != null) {
-			responseMap = new HashMap<String, Object>();
 			ObjectMapper mapper = new ObjectMapper(); // can reuse, share
 			// globally
-			responseMap = mapper.readValue(EntityUtils.toString(response.getEntity()), 
-											new TypeReference<Map<String, Object>>() {});
+			jsonNode = mapper.readValue(EntityUtils.toString(response.getEntity()), JsonNode.class);
 		}
-		return responseMap;
+		return jsonNode;
 	}
+	/**
+	 * Delete the resource. Does not return anything.
+	 * 
+	 * @param params
+	 * @param resourceType
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException 
+	 */
 	public void deleteResource(Map<String,String> params, String resourceType) 
-							throws ClientProtocolException, IOException {
+							throws ClientProtocolException, IOException, URISyntaxException {
 		doDelete(params, resourceType);
 	}
+	/**
+	 * Returns a pager object holding the results. Depending on the type 
+	 * of the request the pager will hold files, templates or collections.
+	 * 
+	 * @param params
+	 * @param resourceType
+	 * @return Pager
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException 
+	 */
 	public Pager getPagedResults(Map<String,String> params, String resourceType) 
-							throws ClientProtocolException, IOException {
+							throws ClientProtocolException, IOException, URISyntaxException {
 		HttpResponse response = doGet(params, resourceType);
 		Pager pager = null;
 		if (response.getEntity() != null) {
@@ -324,49 +368,59 @@ public class CanorisConManager {
 	 * Something is wrong with the design, rethink it.
 	 */
 	private HttpResponse doGet(Map<String, String> params, String resourceType)
-								throws ClientProtocolException, IOException {
+								throws ClientProtocolException, 
+									   IOException, URISyntaxException {
 		HttpClient client = createClient();
 		HttpHost target = new HttpHost(CanorisAPI.getInstance().getBaseURL(), 80, "http");
-		HttpGet httpGet = new HttpGet(constructUri(params, resourceType));
-		HttpResponse response = client.execute(target, httpGet);
-
+		HttpGet httpGet = new HttpGet(constructURI(params, resourceType));
+		HttpResponse response = client.execute(httpGet);
 		// TODO: find out about resource releasing, I think the
 		// entity.consumeCOntent
 		// takes care of this but double check
 		// client.getConnectionManager().shutdown();
-
 		return response;
 	}
 	private HttpResponse doPost(Map<String, String> uriParams, 
 								Map<String, String> postParams,
 								String resourceType) 
-							throws ClientProtocolException, IOException {
-		HttpClient client = createClient();
-		HttpHost target = new HttpHost(CanorisAPI.getInstance().getBaseURL(), 80, "http");
-		HttpPost httpPost = new HttpPost(constructUri(uriParams, resourceType));
+							throws 
+								ClientProtocolException, 
+								IOException, 
+								URISyntaxException {
 		
-		StringEntity entity = new StringEntity(createParams(postParams), DEFAULT_ENCODING);
+		HttpClient client = createClient();
+		HttpPost httpPost = new HttpPost(constructURI(uriParams, resourceType));
+		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(createParams(postParams), "UTF-8");
 		httpPost.setEntity(entity);
-		HttpResponse response = client.execute(target, httpPost);
 		
-		return response;
+		return client.execute(httpPost);
 	}
-	private HttpResponse doPut(Map<String, String> params, String resourceType) 
-							throws ClientProtocolException, IOException {
-		HttpClient client = createClient();
-		HttpHost target = new HttpHost(CanorisAPI.getInstance().getBaseURL(), 80, "http");
-		HttpPut httpPut = new HttpPut(constructUri(params, resourceType));
+	/*
+	 * Perform a PUT request
+	 */
+	private HttpResponse doPut(Map<String, String> uriParams, 
+							   Map<String, String> putParams, 
+							   String resourceType) 
+							throws 
+								ClientProtocolException, 
+								IOException, 
+								URISyntaxException {
 		
-		StringEntity entity = new StringEntity(createParams(params), DEFAULT_ENCODING);
+		HttpClient client = createClient();
+		HttpPut httpPut = new HttpPut(constructURI(uriParams, resourceType));
+		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(createParams(putParams), "UTF-8");
 		httpPut.setEntity(entity);
 		
-		return client.execute(target, httpPut);
+		return client.execute(httpPut);
 	}
 	private HttpResponse doDelete(Map<String, String> params, String resourceType) 
-								throws ClientProtocolException, IOException {
+								throws 
+									ClientProtocolException, 
+									IOException, 
+									URISyntaxException {
 		HttpClient client = createClient();
 		HttpHost target = new HttpHost(CanorisAPI.getInstance().getBaseURL(), 80, "http");
-		HttpDelete httpDelete = new HttpDelete(constructUri(params, resourceType));
+		HttpDelete httpDelete = new HttpDelete(constructURI(params, resourceType));
 		
 		return client.execute(target, httpDelete);
 	}
@@ -387,129 +441,54 @@ public class CanorisConManager {
 	}
 
 	/*
-	 * Helper to construct the URI to be used in the http requeClientProtocolExceptionst
-	 * FIXME: fucking ugly, do something!
-	 * 		  ***CHECK THE URIUtils class***
+	 * This is to replace that constructUri method
 	 */
-	private String constructUri(Map<String, String> params, String resourceType) {
-		String uri = null;
-		StringTemplate strTemplate = new StringTemplate();
+	private URI constructURI(Map<String,String> params, String resourceType) 
+						throws URISyntaxException {
+		URI uri = null;
+		List<NameValuePair> qparams = new ArrayList<NameValuePair>();
+		// Add the api_key (required always)
+		qparams.add(new BasicNameValuePair("api_key", CanorisAPI.getInstance().getApiKey()));
 		
-		if ("file".equals(resourceType)) {
-			StringTemplate templ = new StringTemplate(Constants.URI_FILE,
-					DefaultTemplateLexer.class);
-			strTemplate.setTemplate(Constants.URI_FILE);
-			
-			templ.setAttribute("fileKey", params.get("fileKey"));
-			uri = templ.toString() + "/serve/?api_key="
-					+ CanorisAPI.getInstance().getApiKey();
-		} else if ("files".equals(resourceType)) {
-			uri = Constants.URI_FILES + "/?api_key="
-					+ CanorisAPI.getInstance().getApiKey();
-		} else if ("conversions".equals(resourceType)) {
-			StringTemplate stringTemplate = new StringTemplate(
-					Constants.URI_FILE_CONVERSIONS, DefaultTemplateLexer.class);
-			stringTemplate.setAttribute("fileKey", params.get("fileKey"));
-			uri = stringTemplate.toString()
-					+ "?api_key=4768e6418bda4d81a67656e34df8b89b";
-		} else if ("conversion".equals(resourceType)) {
-			StringTemplate stringTemplate = new StringTemplate(
-					Constants.URI_FILE_CONVERSION, DefaultTemplateLexer.class);
-			stringTemplate.setAttribute("fileKey", params.get("fileKey"));
-			stringTemplate.setAttribute("conversion", params.get("ref"));
-			uri = stringTemplate.toString()
-					+ "?api_key=4768e6418bda4d81a67656e34df8b89b";
-		} else if ("analysis".equals(resourceType)) {
-			StringTemplate stringTemplate = new StringTemplate(
-					Constants.URI_FILE_ANALYSIS, DefaultTemplateLexer.class);
-			stringTemplate.setAttribute("fileKey", params.get("fileKey"));
-			if (params.get("filter") != null
-					&& !"".equals(params.get("filter"))) {
-				stringTemplate.setAttribute("filter", params.get("filter"));
-			}
-			uri = stringTemplate.toString() + "?api_key="
-					+ CanorisAPI.getInstance().getApiKey();
-		} else if ("visualizations".equals(resourceType)) {
-			StringTemplate stringTemplate = new StringTemplate(
-					Constants.URI_FILE_VISUALIZATIONS, DefaultTemplateLexer.class);
-			stringTemplate.setAttribute("fileKey", params.get("fileKey"));
-			uri = stringTemplate.toString() + "?api_key="
-					+ CanorisAPI.getInstance().getApiKey();
-		} else if ("templates".equals(resourceType)) {
-			if (params != null) {
-				StringTemplate stringTemplate = new StringTemplate(
-						Constants.URI_TEMPLATES, DefaultTemplateLexer.class);
-				stringTemplate.setAttribute("templateName", params.get("name"));
-				uri = stringTemplate.toString();
-			} else {
-				uri = Constants.URI_TEMPLATES;
-			}
-			uri += "?api_key=" + CanorisAPI.getInstance().getApiKey();
-		} else if ("template".equals(resourceType)) {
-			StringTemplate stringTemplate = new StringTemplate(
-					Constants.URI_TEMPLATE, DefaultTemplateLexer.class);
-			stringTemplate.setAttribute("fileKey", params.get("fileKey"));
-			stringTemplate.setAttribute("templateName", params.get("name"));
-			
-			uri = stringTemplate.toString() + "?api_key="
-					+ CanorisAPI.getInstance().getApiKey();
-		} else if ("task".equals(resourceType)) {
-			uri = Constants.URI_TASKS + "?api_key=" + CanorisAPI.getInstance().getApiKey();
-		} else if ("tasks".equals(resourceType)) {
-			StringTemplate stringTemplate = new StringTemplate(
-					Constants.URI_TEMPLATE, DefaultTemplateLexer.class);
-			stringTemplate.setAttribute("taskId", params.get("taskId"));
-			
-			uri = stringTemplate.toString() + "?api_key=" + CanorisAPI.getInstance().getApiKey();
-		} else if ("text2Phoneme".equals(resourceType)) {
-			uri = Constants.URI_PHONEMES + "?text=" + params.get("text")
-					+ "&language=" + params.get("language") 
-					+ "&api_key=" + CanorisAPI.getInstance().getApiKey();
-		} else if ("collections".equals(resourceType)) {
-			uri = Constants.URI_COLLECTIONS + "?api_key=" + CanorisAPI.getInstance().getApiKey();
-		} else if ("collection".equals(resourceType)) {
-			strTemplate.setTemplate(Constants.URI_COLLECTION);
-			strTemplate.setAttribute("collectionKey", params.get("collectionKey"));
-			
-			uri = strTemplate.toString() + "?api_key=" + CanorisAPI.getInstance().getApiKey();
-		} else if ("collectionFiles".equals(resourceType)) {
-			strTemplate.setTemplate(Constants.URI_COLLECTION_FILES);
-			strTemplate.setAttribute("collectionKey", params.get("collectionKey"));
-
-			uri = strTemplate.toString() + "?api_key=" + CanorisAPI.getInstance().getApiKey();
-		} else if ("collectionFile".equals(resourceType)) {
-			strTemplate.setTemplate(Constants.URI_COLLECTION_FILE);
-			strTemplate.setAttribute("collectionKey", params.get("collectionKey"));
-			strTemplate.setAttribute("fileKey", params.get("fileKey"));
-			
-			uri = strTemplate.toString() + "?api_key=" + CanorisAPI.getInstance().getApiKey();
-		} else if ("collectionSimilar".equals(resourceType)) {
-			strTemplate.setTemplate(Constants.URI_COLLECTION_SIMILAR);
-			strTemplate.setAttribute("collectionKey", params.get("collectionKey"));
-			strTemplate.setAttribute("fileKey", params.get("fileKey"));
-			strTemplate.setAttribute("preset", params.get("preset"));
-			strTemplate.setAttribute("results", params.get("results"));
-			
-			uri = strTemplate.toString() + "?api_key=" + CanorisAPI.getInstance().getApiKey();
+		// If the ref exists we can use it to construct the URI directly
+		if (params.get("ref") != null) {
+			return new URI(params.get("ref") + "&api_key=" + CanorisAPI.getInstance().getApiKey());
 		} 
-		// This is a special case since the page contains the part that describes
-		// the resource type, we only need to add the api_key part
-		else if ("page".equals(resourceType)) {
-			uri = params.get("page") + "&api_key=" + CanorisAPI.getInstance().getApiKey();
+		// The page contains the complete URL to use
+		else if (params.get("page") != null) {
+			return new URI(params.get("page") + "&api_key=" + CanorisAPI.getInstance().getApiKey());
+		} 
+		// ref/page does not exist so we need to construct the complete URI
+		else {
+			StringTemplate template = new StringTemplate();
+			template.setTemplate(resourceType);
+			
+			// Need to handle the text2phoneme case separately
+			if (Constants.URI_PHONEMES.equals(resourceType)) {
+				for (String key : params.keySet()) {
+					qparams.add(new BasicNameValuePair(key, params.get(key)));
+				}	
+			} 
+			// Normal case, just replace the placeholders
+			else {
+				template.setAttributes(params);
+			}
+			uri = URIUtils.createURI("http", CanorisAPI.getInstance().getBaseURL(), -1,
+						   			 template.toString(), URLEncodedUtils.format(qparams, "UTF-8"), null);
 		}
+		
 		return uri;
 	}
-	// TODO: Look for some util to do this?
-	private String createParams(Map<String,String> params) {
-		StringBuffer returnParams = new StringBuffer();
-		
-		for(String key : params.keySet()) {
-			returnParams.append(key);
-			returnParams.append("=");
-			returnParams.append(params.get(key));
-			returnParams.append("&");
+	
+	/*
+	 * Helper to iterate over the params map.
+	 */
+	private List<NameValuePair> createParams(Map<String,String> params) {
+		List<NameValuePair> qparams = new ArrayList<NameValuePair>();
+		for (String key : params.keySet()) {
+			qparams.add(new BasicNameValuePair(key, params.get(key)));
 		}
-		return returnParams.substring(0, returnParams.lastIndexOf("&"));
+		return qparams;
 	}
 	
 	/*
