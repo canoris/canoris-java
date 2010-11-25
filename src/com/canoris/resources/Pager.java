@@ -6,6 +6,14 @@ import java.util.Map;
 /**
  * Class to simply implement the paging logic of the CanorisAPI collections
  * 
+ * The pager class is used for all resources that return paged results. 
+ * Depending on the type of the resource the respective class members will be 
+ * null or not. For example when we request files the total_files field will
+ * contain a list with all the files returned. If there are more pages the 
+ * nextPage will contain the link to be used for retrieving the next page.
+ * In case one of the fields is not applicable to the current request it 
+ * will simply be null.
+ * 
  * @author stelios
  *
  */

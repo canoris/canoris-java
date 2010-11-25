@@ -1,14 +1,20 @@
 package com.canoris;
 
+/**
+ * CanorisAPI class is used to simply store the api_key 
+ * and baseURL which are used in all requests.
+ * 
+ * @author stelios
+ */
 public class CanorisAPI {
 	
 	// base URL
+	// Can be set for testing purposes
 	private String baseURL = "api.canoris.com";
 	
-	// The api_key for canoris
+	// The api_key used in all requests
 	private String apiKey = "";
 	
-	// TODO: check if we need to use some more strict singleton technique
 	private static CanorisAPI instance = null;
 		protected CanorisAPI() {
 	}
@@ -19,9 +25,8 @@ public class CanorisAPI {
 	    }
 	    return instance;
 	}
-
 	
-	/************** GETTERS && SETTERS ***************/
+	/* ************* GETTERS && SETTERS ************** */
 	public String getApiKey() {
 		return apiKey;
 	}

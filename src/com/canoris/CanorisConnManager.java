@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -32,7 +31,6 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
@@ -49,29 +47,35 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
+import com.canoris.exception.CanorisException;
 import com.canoris.resources.CanorisFile;
 import com.canoris.resources.Pager;
 
 /*
  * TODO: 1) javadoc public methods
  * 		 2) refactor some methods 
- * 			 - constructUri
  * 			 - uploadFile
- * 		 3) Use global ObjectMapper
- * 		 
  */
-public class CanorisConManager {
+/**
+ * Internally used class to perform the HTTPRequests. 
+ * In addition JsonParseException(s) are caught here and wrapped 
+ * in a CanorisException, which contains the HTTP_ERROR_CODE.
+ */
+public class CanorisConnManager {
 
 	private static final String DEFAULT_ENCODING = "UTF-8";
 	// TODO: check if we need to use some more strict singleton technique
-	private static CanorisConManager instance = null;
+	private static CanorisConnManager instance = null;
+	// The object mapper to be used globally
+	private static ObjectMapper mapper;
 
-	protected CanorisConManager() {
+	protected CanorisConnManager() {
 	}
 
-	public static CanorisConManager getInstance() {
+	public static CanorisConnManager getInstance() {
 		if (instance == null) {
-			instance = new CanorisConManager();
+			instance = new CanorisConnManager();
+			mapper = new ObjectMapper();
 		}
 		return instance;
 	}
@@ -122,10 +126,7 @@ public class CanorisConManager {
 
 		httpPost.setEntity(reqEntity);
 
-		// System.out.println("executing request " + httpPost.getRequestLine());
-
 		HttpResponse response = httpClient.execute(target, httpPost);
-		// System.out.println("Response : " + response);
 
 		HttpEntity resEntity = response.getEntity();
 		CanorisFile canFile = null;
@@ -133,8 +134,6 @@ public class CanorisConManager {
 		// CLEAN!!!
 		if (resEntity != null) {
 			canFile = new CanorisFile();
-			ObjectMapper mapper = new ObjectMapper(); // can reuse, share
-			// globally
 			Map<String, Object> map = mapper.readValue(EntityUtils
 					.toString(resEntity),
 					new TypeReference<Map<String, Object>>() {
@@ -146,32 +145,6 @@ public class CanorisConManager {
 		}
 
 		return canFile;
-	}
-
-	/**
-	 * Returns a Pager object to be used for navigating the pages or getting
-	 * access to a specific element in the page.
-	 * 
-	 * @return Pager
-	 * @throws ClientProtocolException
-	 * @throws IOException
-	 * @throws URISyntaxException 
-	 */
-	public Pager getFiles() throws ClientProtocolException, IOException, URISyntaxException {
-		Map<String, String> params = new HashMap<String, String>();
-		HttpResponse response = doGet(params, "files");
-		Pager pager = null;
-		// Put the object mapper in constructor it should be a singleton
-		if (response.getEntity() != null) {
-			HttpEntity resEntity = response.getEntity();
-			ObjectMapper mapper = new ObjectMapper(); // can reuse, share
-			// THIS IS A HACK!!!
-			pager = mapper.readValue(EntityUtils.toString(resEntity), Pager.class);
-			// release resources
-			resEntity.consumeContent();
-		}
-
-		return pager;
 	}
 
 	/**
@@ -197,7 +170,7 @@ public class CanorisConManager {
 		InputStream in = null;
 		if (response.getEntity() != null) {
 			in = response.getEntity().getContent();
-		}
+		} 
 		return in;
 	}
 	/**
@@ -210,19 +183,23 @@ public class CanorisConManager {
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException 
+	 * @throws Cano.risException 
 	 */
 	public Map<String,Object> getResourceAsMap(Map<String, String> params, String resourceType) 
 										throws 
 											ClientProtocolException, 
 											IOException, 
-											URISyntaxException {
+											URISyntaxException, 
+											CanorisException {
 		HttpResponse response = doGet(params, resourceType);
 		Map<String,Object> responseMap = null;
 		if (response.getEntity() != null) {
-			ObjectMapper mapper = new ObjectMapper(); // can reuse, share
-			// globally
+			try {
 			responseMap = mapper.readValue(EntityUtils.toString(response.getEntity()), 
 											new TypeReference<Map<String, Object>>() {});
+			} catch (JsonParseException e) {
+				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
+			}
 		}
 		return responseMap;
 	}
@@ -235,26 +212,30 @@ public class CanorisConManager {
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException 
+	 * @throws CanorisException 
 	 */
 	public Map<String, Object> getResources(Map<String, String> params,
 											String resourceType)
-										throws ClientProtocolException, 
-											   IOException, 
-											   URISyntaxException {
+										throws 
+											ClientProtocolException, 
+											IOException, 
+											URISyntaxException, 
+											CanorisException {
 		HttpResponse response = doGet(params, resourceType);
 		Map<String, Object> resources = null;
 		if (response.getEntity() != null) {
-			ObjectMapper mapper = new ObjectMapper(); // can reuse, share
-			// globally
-			resources = mapper.readValue(EntityUtils.toString(response
-					.getEntity()), new TypeReference<Map<String, Object>>() {
-			});
+			try {
+				resources = mapper.readValue(EntityUtils.toString(response.getEntity()), 
+											 new TypeReference<Map<String, Object>>() {});
+			} catch (JsonParseException e) {
+				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
+			}
 		}
 		return resources;
 	}
 	/**
 	 * Returns the requested resource as a JsonNode. This is the only viable
-	 * solution in some case due to the Json results being heavily nested.
+	 * solution in some case due to the JSON results being heavily nested.
 	 * 
 	 * @param params
 	 * @param resourceType
@@ -264,6 +245,7 @@ public class CanorisConManager {
 	 * @throws ParseException
 	 * @throws IOException
 	 * @throws URISyntaxException 
+	 * @throws CanorisException 
 	 */
 	public JsonNode getResourcesAsTree(Map<String, String> params,
 									   String resourceType) 
@@ -271,13 +253,16 @@ public class CanorisConManager {
 										   JsonMappingException, 
 										   ParseException, 
 										   IOException, 
-										   URISyntaxException {
+										   URISyntaxException, 
+										   CanorisException {
 		HttpResponse response = doGet(params, resourceType);
 		JsonNode resources = null;
 		if (response.getEntity() != null) {
-			ObjectMapper mapper = new ObjectMapper(); // can reuse, share
-			// globally
-			resources = mapper.readValue(EntityUtils.toString(response.getEntity()), JsonNode.class);
+			try {
+				resources = mapper.readValue(EntityUtils.toString(response.getEntity()), JsonNode.class);
+			} catch (JsonParseException e) {
+				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
+			}
 		}
 		return resources;
 	}
@@ -290,19 +275,26 @@ public class CanorisConManager {
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException 
+	 * @throws CanorisException 
 	 */
 	public Map<String,Object> createResource(Map<String,String> uriParams,
 											 Map<String,String> postParams,
 											 String resourceType) 
-											throws ClientProtocolException, IOException, URISyntaxException {
+											throws 
+												ClientProtocolException, 
+												IOException, 
+												URISyntaxException, 
+												CanorisException {
 		HttpResponse response = doPost(uriParams, postParams, resourceType);
 		Map<String, Object> responseMap = null;
 		if (response.getEntity() != null) {
 			responseMap = new HashMap<String, Object>();
-			ObjectMapper mapper = new ObjectMapper(); // can reuse, share
-			// globally
-			responseMap = mapper.readValue(EntityUtils.toString(response.getEntity()), 
-											new TypeReference<Map<String, Object>>() {});
+			try {
+				responseMap = mapper.readValue(EntityUtils.toString(response.getEntity()), 
+											   new TypeReference<Map<String, Object>>() {});
+			} catch (JsonParseException e) {
+				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
+			}
 		}
 		return responseMap;
 	}
@@ -316,21 +308,30 @@ public class CanorisConManager {
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException 
+	 * @throws CanorisException 
 	 */
 	public JsonNode updateResource(Map<String,String> urlParams,
 											 Map<String,String> putParams, 
-											 String resourceType) throws ClientProtocolException, IOException, URISyntaxException {
+											 String resourceType) 
+								throws 
+									ClientProtocolException, 
+									IOException, 
+									URISyntaxException, 
+									CanorisException {
 		HttpResponse response = doPut(urlParams, putParams, resourceType);
 		JsonNode jsonNode = null;
 		if (response.getEntity() != null) {
-			ObjectMapper mapper = new ObjectMapper(); // can reuse, share
-			// globally
-			jsonNode = mapper.readValue(EntityUtils.toString(response.getEntity()), JsonNode.class);
+			try {
+				jsonNode = mapper.readValue(EntityUtils.toString(response.getEntity()), JsonNode.class);
+			} catch (JsonParseException e) {
+				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
+			}
 		}
 		return jsonNode;
 	}
 	/**
 	 * Delete the resource. Does not return anything.
+	 * TODO: what exception does this throw that is useful???
 	 * 
 	 * @param params
 	 * @param resourceType
@@ -352,14 +353,22 @@ public class CanorisConManager {
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException 
+	 * @throws CanorisException 
 	 */
 	public Pager getPagedResults(Map<String,String> params, String resourceType) 
-							throws ClientProtocolException, IOException, URISyntaxException {
+							throws 
+								ClientProtocolException, 
+								IOException, 
+								URISyntaxException, 
+								CanorisException {
 		HttpResponse response = doGet(params, resourceType);
 		Pager pager = null;
 		if (response.getEntity() != null) {
-			ObjectMapper mapper = new ObjectMapper(); // can reuse, share
-			pager = mapper.readValue(EntityUtils.toString(response.getEntity()), Pager.class);
+			try {
+				pager = mapper.readValue(EntityUtils.toString(response.getEntity()), Pager.class);
+			} catch (JsonParseException e) {
+				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
+			}
 		}
 		return pager;
 	}
@@ -371,13 +380,9 @@ public class CanorisConManager {
 								throws ClientProtocolException, 
 									   IOException, URISyntaxException {
 		HttpClient client = createClient();
-		HttpHost target = new HttpHost(CanorisAPI.getInstance().getBaseURL(), 80, "http");
 		HttpGet httpGet = new HttpGet(constructURI(params, resourceType));
 		HttpResponse response = client.execute(httpGet);
-		// TODO: find out about resource releasing, I think the
-		// entity.consumeCOntent
-		// takes care of this but double check
-		// client.getConnectionManager().shutdown();
+
 		return response;
 	}
 	private HttpResponse doPost(Map<String, String> uriParams, 
@@ -429,7 +434,6 @@ public class CanorisConManager {
 	 * Setup client
 	 */
 	private HttpClient createClient() {
-		// Create client
 		HttpClient httpClient;
 		// Check for proxy
 		if (useProxy)
@@ -441,7 +445,9 @@ public class CanorisConManager {
 	}
 
 	/*
-	 * This is to replace that constructUri method
+	 * Constructs a URI.
+	 * TODO: It will fail is params is null, need to fix this.
+	 * 		 It's valid to have no params in some cases.
 	 */
 	private URI constructURI(Map<String,String> params, String resourceType) 
 						throws URISyntaxException {
@@ -494,7 +500,7 @@ public class CanorisConManager {
 	/*
 	 * Helper method to setup proxy
 	 */
-	private HttpClient setupProxy(String proxyAddress, Integer port,
+	protected HttpClient setupProxy(String proxyAddress, Integer port,
 			String protocol) {
 		// Create proxy
 		HttpHost proxy = new HttpHost(proxyAddress, port, protocol);
@@ -520,7 +526,6 @@ public class CanorisConManager {
 				proxy);
 
 		return httpClient;
-
 	}
 
 }

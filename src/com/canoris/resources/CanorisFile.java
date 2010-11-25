@@ -39,7 +39,6 @@ public class CanorisFile extends CanorisResource {
 		this.properties = properties;
 	}
 	
-	
 	/*
 	 * Helper methods to get from the properties map the given property
 	 */

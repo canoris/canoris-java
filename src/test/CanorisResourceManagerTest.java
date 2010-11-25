@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import com.canoris.CanorisAPI;
 import com.canoris.CanorisResourceManager;
+import com.canoris.exception.CanorisException;
 import com.canoris.resources.CanorisFile;
 import com.canoris.resources.Pager;
 
@@ -70,6 +71,8 @@ public class CanorisResourceManagerTest {
 		try {
 			Pager pager = manager.getFiles();
 			Assert.assertNotNull(pager);
+			// The files is an array....
+			Assert.assertNotNull(pager.getFiles().get(0));
 			if (pager.getNext() != null) {
 				pager = manager.getNextPage(pager);
 				Assert.assertNotNull(pager);
@@ -82,6 +85,8 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -102,6 +107,9 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -171,6 +179,8 @@ public class CanorisResourceManagerTest {
 			manager.useProxy(true);
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -189,6 +199,9 @@ public class CanorisResourceManagerTest {
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (CanorisException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
@@ -203,6 +216,8 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -221,6 +236,8 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -240,6 +257,9 @@ public class CanorisResourceManagerTest {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
+		} catch (CanorisException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	/*
@@ -258,6 +278,8 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -295,6 +317,9 @@ public class CanorisResourceManagerTest {
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (CanorisException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	@Test
@@ -307,6 +332,9 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -328,6 +356,9 @@ public class CanorisResourceManagerTest {
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (CanorisException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
@@ -343,6 +374,8 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -359,6 +392,9 @@ public class CanorisResourceManagerTest {
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (CanorisException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	@Test
@@ -371,6 +407,9 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -399,6 +438,8 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -416,6 +457,8 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -431,6 +474,8 @@ public class CanorisResourceManagerTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -455,8 +500,10 @@ public class CanorisResourceManagerTest {
 			// Jackson parse exception is caught here...
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (CanorisException e) {
+			e.printStackTrace();
+			System.out.println("HTTP_ERROR_CODE : " + e.getHttpErrorCode());
 		}
 		
 	}

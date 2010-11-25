@@ -1,5 +1,12 @@
 package com.canoris;
 
+/**
+ * Constants class. It actually holds all the resource paths 
+ * used in the requests.
+ * 
+ * @author stelios
+ *
+ */
 public class Constants {
 	public final static String URI_FILES = "/files";
 	public final static String URI_FILE = "/files/$fileKey$";
