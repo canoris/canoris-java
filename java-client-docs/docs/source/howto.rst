@@ -1,0 +1,75 @@
+.. _howto-usage:
+
+Simple files howto
+>>>>>>>>>>>>>>>>>>
+
+This is a simple walkthrough demonstrating how to:
+
+:ref:`upload_file`
+
+:ref:`retrieve_all_files`
+
+2) Retrieve a file.
+
+:ref:`retrieve_all_files`
+
+4) Retrieve a conversion.
+
+First we need to create a CanorisResourceManager object. This object performs all communication with the
+Canoris API. 
+
+::
+
+  CanorisResourceManager manager = new CanorisResourceManager();
+
+
+.. _upload_file:
+
+1) Upload a file
+----------------
+
+To upload a file simply do:
+
+::
+
+  CanorisFile file = (CanorisFile) manager.createFile(filePath, null)
+
+*filePath*: the path where the file is located.
+For the moment you can ignore the second parameter since it is not used.
+
+This call will return a CanFile object, you will have to cast it since the method returns a CanorisResource object.
+Refer to ADD_LINK_TO_JAVADOC for the structure of the CanorisFile object.
+
+
+2) Retrieve a file
+-----------------
+
+To retrieve a single file you need to create a file using the file_key.
+
+::
+
+  CanorisFile file = new CanorisFile("<file_key>");
+
+The use the CanorisResourceManager to retrieve/populate the file like this:
+
+::
+
+  Map<String,Object> retrievedFile = manager.getFile(file);
+
+TODO: add the case where you don't create a file but pass only the file key to the manager
+
+
+.. _retrieve_all_files:
+
+3) Retrieve all files
+---------------------
+
+To get the all files that we have uploaded we simply do:
+
+::
+  Page pager = manager.getFiles();
+
+The pager object can be used to access the files and navigate to other pages (if any).
+
+
+
