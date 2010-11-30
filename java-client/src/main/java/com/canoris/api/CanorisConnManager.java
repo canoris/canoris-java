@@ -142,7 +142,7 @@ public class CanorisConnManager {
 					});
 			canFile.setProperties(map);
 
-			// TODO: what exactly does consumeContent do, releases resources???
+			// release resources
 			resEntity.consumeContent();
 		}
 
@@ -172,6 +172,8 @@ public class CanorisConnManager {
 		InputStream in = null;
 		if (response.getEntity() != null) {
 			in = response.getEntity().getContent();
+			// TODO: if I do response.getEntity().consumeContent(); 
+			// then I get socketClosed error, how to rectify this?
 		} 
 		return in;
 	}
@@ -230,6 +232,7 @@ public class CanorisConnManager {
 			try {
 				resources = mapper.readValue(EntityUtils.toString(response.getEntity()), 
 											 new TypeReference<Map<String, Object>>() {});
+				response.getEntity().consumeContent();
 			} catch (JsonParseException e) {
 				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
 			}
@@ -263,6 +266,7 @@ public class CanorisConnManager {
 		if (response.getEntity() != null) {
 			try {
 				resources = mapper.readValue(EntityUtils.toString(response.getEntity()), JsonNode.class);
+				response.getEntity().consumeContent();
 			} catch (JsonParseException e) {
 				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
 			}
@@ -295,6 +299,7 @@ public class CanorisConnManager {
 			try {
 				responseMap = mapper.readValue(EntityUtils.toString(response.getEntity()), 
 											   new TypeReference<Map<String, Object>>() {});
+				response.getEntity().consumeContent();
 			} catch (JsonParseException e) {
 				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
 			}
@@ -326,6 +331,7 @@ public class CanorisConnManager {
 		if (response.getEntity() != null) {
 			try {
 				jsonNode = mapper.readValue(EntityUtils.toString(response.getEntity()), JsonNode.class);
+				response.getEntity().consumeContent();
 			} catch (JsonParseException e) {
 				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
 			}
@@ -369,6 +375,7 @@ public class CanorisConnManager {
 		if (response.getEntity() != null) {
 			try {
 				pager = mapper.readValue(EntityUtils.toString(response.getEntity()), Pager.class);
+				response.getEntity().consumeContent();
 			} catch (JsonParseException e) {
 				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
 			}
