@@ -148,7 +148,48 @@ public class CanorisConnManager {
 
 		return canFile;
 	}
-
+	/**
+	 * Returns a canorisFile or null if no file is found with the give fileKey.
+	 * 
+	 * TODO: customMapper so it setups up the properties/key/ref automaticaly 
+	 * 
+	 * @param params
+	 * @param resourceType
+	 * @return CanorisFile
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 * @throws CanorisException
+	 */
+	public CanorisFile getCanorisFile(Map<String, String> params, String resourceType) 
+									throws 
+										IOException, 
+										JsonMappingException, 
+										JsonParseException, 
+										IOException, 
+										URISyntaxException, 
+										CanorisException {
+		HttpResponse response = doGet(params, resourceType);
+		CanorisFile canFile = null;
+		if (response.getEntity() != null) {
+			try {
+				canFile = new CanorisFile();
+				Map<String, Object> map = mapper.readValue(EntityUtils.toString(response.getEntity()),
+															new TypeReference<Map<String, Object>>() {});
+				canFile.setProperties(map);
+				canFile.setKey((String) map.get("key"));
+				canFile.setRef((String) map.get("ref"));
+			} catch (JsonParseException e) {
+				throw new CanorisException(response.getStatusLine().getStatusCode(), e);
+			}
+			response.getEntity().consumeContent();
+		}
+		return canFile;
+	}
+	
+	
 	/**
 	 * Returns the requested file
 	 * 

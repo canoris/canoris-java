@@ -69,18 +69,34 @@ public class CanorisResourceManager {
 	 * Returns a Map representing  the requested file.
 	 * 
 	 * @param file
-	 * @return Map<String,Object>
+	 * @return CanorisFile
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException 
 	 * @throws CanorisException 
 	 */
-	public Map<String,Object> getFile(CanorisFile file) throws ClientProtocolException, IOException, URISyntaxException, CanorisException {
+	public CanorisFile getFile(CanorisFile file) throws ClientProtocolException, IOException, URISyntaxException, CanorisException {
 		if (file == null)
 			return null;
 		Map<String, String> params = new HashMap<String, String>(2);
 		params.put("fileKey", file.getKey());
-		return CanorisConnManager.getInstance().getResourceAsMap(params, Constants.URI_FILE);
+		return CanorisConnManager.getInstance().getCanorisFile(params, Constants.URI_FILE);
+	}
+	/**
+	 * Returns a Map representing  the requested file.
+	 * 
+	 * @param fileKey
+	 * @return CanorisFile 
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 * @throws CanorisException
+	 */
+	public CanorisFile getFile(String fileKey) 
+		throws ClientProtocolException, IOException, URISyntaxException, CanorisException {
+		Map<String, String> params = new HashMap<String, String>(2);
+		params.put("fileKey", fileKey);
+		return CanorisConnManager.getInstance().getCanorisFile(params, Constants.URI_FILE);
 	}
 	/**
 	 * Return an InputStream representing the requested file.
@@ -97,6 +113,21 @@ public class CanorisResourceManager {
 			return null;
 		Map<String, String> params = new HashMap<String, String>(2);
 		params.put("fileKey", file.getKey());
+		return CanorisConnManager.getInstance().getResource(params, Constants.URI_FILE_SERVE);
+	}
+	/**
+	 * Return an InputStream representing the requested file.
+	 * The user has to manually handle the inputStream.
+	 * 
+	 * @param file
+	 * @return InputStream
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	public InputStream downloadFile(String fileKey) throws ClientProtocolException, IOException, URISyntaxException {
+		Map<String, String> params = new HashMap<String, String>(2);
+		params.put("fileKey", fileKey);
 		return CanorisConnManager.getInstance().getResource(params, Constants.URI_FILE_SERVE);
 	}
 	/**

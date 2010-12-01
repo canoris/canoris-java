@@ -95,13 +95,16 @@ public class CanorisResourceManagerTest {
 	@Test
 	public void testGetFile() {
 		CanorisFile file = new CanorisFile("b41bf3e6e37540608e30fc1281804ed0");
-		// file.setRef("http://api.canoris.com/files/b41bf3e6e37540608e30fc1281804ed0");
-		
 		try {
-			Map<String,Object> response = manager.getFile(file);
-			Assert.assertNotNull(response);
-			Double fs = (Double) response.get("samplerate");
+			// File parameter
+			CanorisFile response1 = manager.getFile(file);
+			Assert.assertNotNull(response1);
+			Double fs = (Double) response1.getProperties().get("samplerate");
 			Assert.assertTrue(fs == 44100.0);
+			// String parameter
+			CanorisFile response2 = manager.getFile("b41bf3e6e37540608e30fc1281804ed0");
+			
+			Assert.assertEquals(response1.getKey(), response2.getKey());
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -118,11 +121,13 @@ public class CanorisResourceManagerTest {
 	@Test
 	public void testDownloadFile() {
 		CanorisFile file = new CanorisFile("b41bf3e6e37540608e30fc1281804ed0");
-		
-		InputStream in;
 		try {
-			in = manager.downloadFile(file);
-			Assert.assertNotNull(in);
+			// File parameter
+			InputStream in1 = manager.downloadFile(file);
+			Assert.assertNotNull(in1);
+			// String parameter
+			InputStream in2 = manager.downloadFile(file);
+			Assert.assertNotNull(in2);
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -368,7 +373,7 @@ public class CanorisResourceManagerTest {
 		try {
 			Pager pager = manager.getCollections();
 			Assert.assertNotNull(pager);
-			Assert.assertNotNull(pager.getTotal_collections());
+			Assert.assertNotNull(pager.getTotalCollections());
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

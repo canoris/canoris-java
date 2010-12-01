@@ -3,6 +3,8 @@ package com.canoris.api.resources;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * Class to simply implement the paging logic of the CanorisAPI collections
  * 
@@ -46,8 +48,10 @@ import java.util.Map;
  */
 public class Pager {
 	// TODO: check annotation for these type of field names
-	private String total_files;
-	private String total_collections;
+	@JsonProperty(value="total_files")
+	private String totalFiles;
+	@JsonProperty(value="total_collections")
+	private String totalCollections;
 	private String ref;
 	private String next;
 	private String previous;
@@ -76,17 +80,17 @@ public class Pager {
 	}
 	
 	//----------- GETTERS && SETTERS
-	public String getTotal_files() {
-		return total_files;
+	public String getTotalFiles() {
+		return totalFiles;
 	}
-	public void setTotal_files(String total_files) {
-		this.total_files = total_files;
+	public void setTotalFiles(String totalFiles) {
+		this.totalFiles = totalFiles;
 	}
-	public String getTotal_collections() {
-		return total_collections;
+	public String getTotalCollections() {
+		return totalCollections;
 	}
-	public void setTotal_collections(String totalCollections) {
-		total_collections = totalCollections;
+	public void setTotalCollections(String totalCollections) {
+		this.totalCollections = totalCollections;
 	}
 	public String getRef() {
 		return ref;
