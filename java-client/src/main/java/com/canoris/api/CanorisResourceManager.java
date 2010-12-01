@@ -119,7 +119,7 @@ public class CanorisResourceManager {
 	 * Return an InputStream representing the requested file.
 	 * The user has to manually handle the inputStream.
 	 * 
-	 * @param file
+	 * @param fileKey
 	 * @return InputStream
 	 * @throws ClientProtocolException
 	 * @throws IOException
@@ -204,7 +204,7 @@ public class CanorisResourceManager {
 	/**
 	 * 
 	 * @param file
-	 * @return
+	 * @return Map<String,Object>
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException 
@@ -238,7 +238,7 @@ public class CanorisResourceManager {
 	 * 
 	 * TODO: This should return a JsonNode??
 	 * 
-	 * @param template
+	 * @param templateName
 	 * @return Map<String,Object>
 	 * @throws ClientProtocolException
 	 * @throws IOException
@@ -256,7 +256,7 @@ public class CanorisResourceManager {
 	}
 	/**
 	 * 
-	 * @param template
+	 * @param templateContent
 	 * @param templateName
 	 * @return JSonNode
 	 * @throws ClientProtocolException
@@ -298,7 +298,7 @@ public class CanorisResourceManager {
 	 * Creates with the give taskName, containing the taskContent.
 	 * 
 	 * @param taskName
-	 * @param templateContent
+	 * @param taskContent
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException 
@@ -394,7 +394,7 @@ public class CanorisResourceManager {
 	 * @param name
 	 * @param license
 	 * @param visibility
-	 * @return
+	 * @return Map<String,Object>
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException 
@@ -492,10 +492,26 @@ public class CanorisResourceManager {
 		
 		return CanorisConnManager.getInstance().getResourceAsMap(params, Constants.URI_COLLECTION_FILE);
 	}
+	
 	/* ***************************** FILE COLLECTION ***************************** */
+	
+	/**
+	 * Performs a similarity search.
+	 * 
+	 * @param collectionKey
+	 * @param file
+	 * @param preset
+	 * @param results
+	 * @return Map<String,Object>
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 * @throws CanorisException
+	 */
 	public Map<String,Object> getSimilaritySearch(String collectionKey, CanorisFile file,
 												  String preset, String results) 
-											  throws ClientProtocolException, IOException, URISyntaxException, CanorisException {
+											  throws ClientProtocolException, IOException, 
+											  		 URISyntaxException, CanorisException {
 		if (file == null)
 			return null;
 		Map<String,String> params = new HashMap<String, String>();
@@ -531,7 +547,7 @@ public class CanorisResourceManager {
 	 * Gets the previous page. It extracts the page number by the pager.
 	 * 
 	 * @param pager
-	 * @return
+	 * @return Pager
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException
@@ -554,10 +570,12 @@ public class CanorisResourceManager {
 	public void useProxy(boolean useProxy) {
 		CanorisConnManager.getInstance().setUseProxy(useProxy);
 	}
+	// TODO: IMPLEMENT THIS
+	/*
 	public void configProxy(String host, int port, String protocol) {
 		CanorisConnManager.getInstance().setupProxy(host, port, protocol);
 	}
-	
+	*/
 	//------------ GETTERS && SETTERS ---------------
 	public CanorisConnManager getCanorisRequest() {
 		return canorisRequest;

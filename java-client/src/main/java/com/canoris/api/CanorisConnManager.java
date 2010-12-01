@@ -52,9 +52,9 @@ import com.canoris.api.resources.CanorisFile;
 import com.canoris.api.resources.Pager;
 
 /*
- * TODO: 1) javadoc public methods
+ * TODO: 1) javadoc public methods	DONE
  *       2) refactor uploadFile
- * 	 3) consume content through entity to ensure resource release
+ * 	 	 3) entity.consumeContent problem in InputStream cases
  */
 /**
  * 
@@ -78,16 +78,16 @@ public class CanorisConnManager {
 		if (instance == null) {
 			instance = new CanorisConnManager();
 			mapper = new ObjectMapper();
+			// Should I create once the httpClient here?
 		}
 		return instance;
 	}
 
 	private boolean useProxy = false;
 
-	public boolean getUseProxy() {
+	public boolean isUseProxy() {
 		return useProxy;
 	}
-
 	public void setUseProxy(boolean useProxy) {
 		this.useProxy = useProxy;
 	}
@@ -109,8 +109,8 @@ public class CanorisConnManager {
 		HttpPost httpPost = new HttpPost("/files/?api_key="
 				+ CanorisAPI.getInstance().getApiKey());
 
-		// TODO: setup proxy should be called by the CanorisREsourceManager
 		if (useProxy) {
+			// TODO: maybe a bit of a dirty workaround...
 			httpClient = setupProxy("proxy.upf.edu", 8080, "http");
 		} else {
 			httpClient = new DefaultHttpClient();
@@ -193,11 +193,7 @@ public class CanorisConnManager {
 	/**
 	 * Returns the requested file
 	 * 
-	 * @param fileKey
-	 *            The key of the file to get the conversion from
-	 * @param ref
-	 *            This can be the reference or name of the resource i.e.
-	 *            conversion name, file reference, visualization name etc.
+	 * @param params
 	 * @param resourceType
 	 * @return InputStream
 	 * @throws ClientProtocolException
@@ -254,7 +250,7 @@ public class CanorisConnManager {
 	 * 
 	 * @param params
 	 * @param resourceType
-	 * @return
+	 * @return Map<String, Object>
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 * @throws URISyntaxException 
@@ -317,7 +313,8 @@ public class CanorisConnManager {
 	/**
 	 * Creates a resource by executing a POST request.
 	 * 
-	 * @param params
+	 * @param uriParams
+	 * @param postParams
 	 * @param resourceType
 	 * @return Map<String,Object>
 	 * @throws ClientProtocolException
@@ -487,20 +484,6 @@ public class CanorisConnManager {
 	}
 
 	/*
-	 * Setup client
-	 */
-	private HttpClient createClient() {
-		HttpClient httpClient;
-		// Check for proxy
-		if (useProxy)
-			httpClient = setupProxy("proxy.upf.edu", 8080, "http");
-		else
-			httpClient = new DefaultHttpClient();
-
-		return httpClient;
-	}
-
-	/*
 	 * Helper method to construct a URI.
 	 * TODO: It will fail is params is null, need to fix this.
 	 * 		 It's valid to have no params in some cases.
@@ -541,7 +524,6 @@ public class CanorisConnManager {
 		
 		return uri;
 	}
-	
 	/*
 	 * Helper to iterate over the params map.
 	 */
@@ -552,12 +534,23 @@ public class CanorisConnManager {
 		}
 		return qparams;
 	}
-	
+	/*
+	 * Setup client
+	 */
+	private HttpClient createClient() {
+		HttpClient httpClient;
+		// Check for proxy
+		if (useProxy)
+			httpClient = setupProxy("proxy.upf.edu", 8080, "http");
+		else
+			httpClient = new DefaultHttpClient();
+
+		return httpClient;
+	}
 	/*
 	 * Helper method to setup proxy
 	 */
-	protected HttpClient setupProxy(String proxyAddress, Integer port,
-			String protocol) {
+	protected HttpClient setupProxy(String proxyAddress, Integer port, String protocol) {
 		// Create proxy
 		HttpHost proxy = new HttpHost(proxyAddress, port, protocol);
 		SchemeRegistry supportedSchemes = new SchemeRegistry();

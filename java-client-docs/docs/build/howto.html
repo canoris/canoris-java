@@ -52,14 +52,11 @@
 <span id="howto-usage"></span><h1>Simple files howto<a class="headerlink" href="#simple-files-howto" title="Permalink to this headline">¶</a></h1>
 <p>This is a simple walkthrough demonstrating how to:</p>
 <p><a class="reference internal" href="#upload-file"><em>1) Upload a file</em></a></p>
+<p><a class="reference internal" href="#retrieve-file"><em>2) Retrieve a file</em></a></p>
 <p><a class="reference internal" href="#retrieve-all-files"><em>3) Retrieve all files</em></a></p>
-<ol class="arabic simple" start="2">
-<li>Retrieve a file.</li>
-</ol>
 <p><a class="reference internal" href="#retrieve-all-files"><em>3) Retrieve all files</em></a></p>
-<ol class="arabic simple" start="4">
-<li>Retrieve a conversion.</li>
-</ol>
+<p><a class="reference internal" href="#retrieve-file-conversion"><em>4) Request file conversions</em></a></p>
+<p><a class="reference internal" href="#handle-jsonnode-results"><em>5) Handle JsonNode results</em></a></p>
 <p>First we need to create a CanorisResourceManager object. This object performs all communication with the
 Canoris API.</p>
 <div class="highlight-python"><pre>CanorisResourceManager manager = new CanorisResourceManager();</pre>
@@ -74,14 +71,57 @@ For the moment you can ignore the second parameter since it is not used.</p>
 <p>This call will return a CanFile object, you will have to cast it since the method returns a CanorisResource object.
 Refer to ADD_LINK_TO_JAVADOC for the structure of the CanorisFile object.</p>
 </div>
+<div class="section" id="retrieve-a-file">
+<span id="retrieve-file"></span><h2>2) Retrieve a file<a class="headerlink" href="#retrieve-a-file" title="Permalink to this headline">¶</a></h2>
+<p>To retrieve a single file you can either use it&#8217;s file key as an identifier or pass the whole
+file to be retrieved (containing already the fileKey).
+<a class="reference internal" href="#retrieve-all-files"><em>3) Retrieve all files</em></a>
+Create a file using it&#8217;s file key constructor</p>
+<div class="highlight-python"><pre>CanorisFile file = new CanorisFile("&lt;file_key&gt;");</pre>
+</div>
+<p>Then use the CanorisResourceManager to retrieve/populate the file like this:</p>
+<div class="highlight-python"><pre>CanorisFile canFile = manager.getFile(file);</pre>
+</div>
+<p>Else you can just use the same method like this:</p>
+<div class="highlight-python"><pre>CanorisFile canFile = manager.getFile(&lt;fileKey&gt;);</pre>
+</div>
+<p>If the operation is succesful you can access the various file properties in this manner.</p>
+<div class="highlight-python"><pre>Double fs = (Double) canFile.getProperties().get("samplerate");</pre>
+</div>
+<p>Please refer to the JAVADOC_LINK for a more detailed description of the CanorisFile class.</p>
+</div>
 <div class="section" id="retrieve-all-files">
 <span id="id1"></span><h2>3) Retrieve all files<a class="headerlink" href="#retrieve-all-files" title="Permalink to this headline">¶</a></h2>
 <p>To get the all files that we have uploaded we simply do:</p>
-<dl class="docutils">
-<dt>::</dt>
-<dd>Page pager = manager.getFiles();</dd>
-</dl>
+<div class="highlight-python"><pre>Page pager = manager.getFiles();</pre>
+</div>
 <p>The pager object can be used to access the files and navigate to other pages (if any).</p>
+</div>
+<div class="section" id="request-file-conversions">
+<span id="retrieve-file-conversion"></span><h2>4) Request file conversions<a class="headerlink" href="#request-file-conversions" title="Permalink to this headline">¶</a></h2>
+<p>To request a conversion we have to of course first obtain the file. Refer to previous sections for that.
+Once we have the file we can get its conversions like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">conversions</span> <span class="o">=</span> <span class="n">canorisFile</span><span class="o">.</span><span class="n">getConversions</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>We can then ask for a specific conversion using the following code:</p>
+<div class="highlight-python"><pre>InputStream in = manager.getConversion(file, "mp3_128kb");</pre>
+</div>
+</div>
+<div class="section" id="handle-jsonnode-results">
+<span id="id2"></span><h2>5) Handle JsonNode results<a class="headerlink" href="#handle-jsonnode-results" title="Permalink to this headline">¶</a></h2>
+<p>In some cases the response contains a deeply nested Json response. In those we return a <a class="reference external" href="http://jackson.codehaus.org/1.1.2/javadoc/org/codehaus/jackson/JsonNode.html">JsonNode</a> object.
+Here&#8217;s an example:</p>
+<div class="highlight-python"><pre>String template = "[{\"operation\": \"vocaloid\", \"parameters\": {\"input\": \"{{ test_input }}\"}}]";
+JsonNode jsonResponse = manager.updateTemplate(template, "test");</pre>
+</div>
+<p>Of course the jsonResponse will be <em>null</em> if template with the given name is found.
+If a template is found you can access its properties in the following way:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">jsonResponse</span><span class="o">.</span><span class="n">findValue</span><span class="p">(</span><span class="s">&quot;input&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">toString</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>This of course leaves open the possibility of a null pointer exception so you should always check for the existence
+of the property you are trying to access.</p>
 </div>
 </div>
 
@@ -95,7 +135,10 @@ Refer to ADD_LINK_TO_JAVADOC for the structure of the CanorisFile object.</p>
   <ul>
 <li><a class="reference internal" href="#">Simple files howto</a><ul>
 <li><a class="reference internal" href="#upload-a-file">1) Upload a file</a></li>
+<li><a class="reference internal" href="#retrieve-a-file">2) Retrieve a file</a></li>
 <li><a class="reference internal" href="#retrieve-all-files">3) Retrieve all files</a></li>
+<li><a class="reference internal" href="#request-file-conversions">4) Request file conversions</a></li>
+<li><a class="reference internal" href="#handle-jsonnode-results">5) Handle JsonNode results</a></li>
 </ul>
 </li>
 </ul>
