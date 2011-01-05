@@ -39,6 +39,7 @@ public class CanorisResourceManagerTest {
 		
 		this.manager = new CanorisResourceManager();
 		manager.useProxy(true);
+		manager.configProxy("proxy.upf.edu", 8080, "http");
 	}
 	/*
 	@Test

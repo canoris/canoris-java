@@ -14,4 +14,6 @@ Contents:
    common_setup.rst
    howto.rst
    exception_handling.rst
+   javadocs.rst
+   
 

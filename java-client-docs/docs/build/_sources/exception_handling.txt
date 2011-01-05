@@ -6,7 +6,7 @@ Exception Handling
 
 The canoris java client library throws quite a few exceptions due to the use of the HttpClient
 and Jackson libraries. The exception that is meaningful though and you should be catching is
-the LINK---->CanorisException which wraps a `JsonParseException <http://jackson.codehaus.org/1.0.1/javadoc/org/codehaus/jackson/JsonParseException.html>`_.
+the `CanorisException <../../javadoc/com/canoris/api/exception/CanorisException.html>`_ which wraps a `JsonParseException <http://jackson.codehaus.org/1.0.1/javadoc/org/codehaus/jackson/JsonParseException.html>`_.
 
 This exception contains the HTTP error code in case something went wrong.
 For example trying to perform a similarity search in a collection that has less than 30 files

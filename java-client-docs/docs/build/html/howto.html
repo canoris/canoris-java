@@ -1,0 +1,194 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Simple files howto &mdash; Canoris-Java-Client v1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Canoris-Java-Client v1.0.0 documentation" href="index.html" />
+    <link rel="next" title="Exception Handling" href="exception_handling.html" />
+    <link rel="prev" title="Common Setup" href="common_setup.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="exception_handling.html" title="Exception Handling"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="common_setup.html" title="Common Setup"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Canoris-Java-Client v1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="simple-files-howto">
+<span id="howto-usage"></span><h1>Simple files howto<a class="headerlink" href="#simple-files-howto" title="Permalink to this headline">¶</a></h1>
+<p>This is a simple walkthrough demonstrating how to:</p>
+<p><a class="reference internal" href="#upload-file"><em>1) Upload a file</em></a></p>
+<p><a class="reference internal" href="#retrieve-file"><em>2) Retrieve a file</em></a></p>
+<p><a class="reference internal" href="#retrieve-all-files"><em>3) Retrieve all files</em></a></p>
+<p><a class="reference internal" href="#retrieve-all-files"><em>3) Retrieve all files</em></a></p>
+<p><a class="reference internal" href="#retrieve-file-conversion"><em>4) Request file conversions</em></a></p>
+<p><a class="reference internal" href="#handle-jsonnode-results"><em>5) Handle JsonNode results</em></a></p>
+<p>First we need to create a CanorisResourceManager object. This object performs all communication with the
+Canoris API.</p>
+<div class="highlight-python"><pre>CanorisResourceManager manager = new CanorisResourceManager();</pre>
+</div>
+<div class="section" id="upload-a-file">
+<span id="upload-file"></span><h2>1) Upload a file<a class="headerlink" href="#upload-a-file" title="Permalink to this headline">¶</a></h2>
+<p>To upload a file simply do:</p>
+<div class="highlight-python"><pre>CanorisFile file = (CanorisFile) manager.createFile(filePath, null)</pre>
+</div>
+<p><em>filePath</em>: the path where the file is located.
+For the moment you can ignore the second parameter since it is not used.</p>
+<p>This call will return a CanFile object, you will have to cast it since the method returns a CanorisResource object.
+Refer to ADD_LINK_TO_JAVADOC for the structure of the CanorisFile object.</p>
+</div>
+<div class="section" id="retrieve-a-file">
+<span id="retrieve-file"></span><h2>2) Retrieve a file<a class="headerlink" href="#retrieve-a-file" title="Permalink to this headline">¶</a></h2>
+<p>To retrieve a single file you can either use it&#8217;s file key as an identifier or pass the whole
+file to be retrieved (containing already the fileKey).
+<a class="reference internal" href="#retrieve-all-files"><em>3) Retrieve all files</em></a>
+Create a file using it&#8217;s file key constructor</p>
+<div class="highlight-python"><pre>CanorisFile file = new CanorisFile("&lt;file_key&gt;");</pre>
+</div>
+<p>Then use the CanorisResourceManager to retrieve/populate the file like this:</p>
+<div class="highlight-python"><pre>CanorisFile canFile = manager.getFile(file);</pre>
+</div>
+<p>Else you can just use the same method like this:</p>
+<div class="highlight-python"><pre>CanorisFile canFile = manager.getFile(&lt;fileKey&gt;);</pre>
+</div>
+<p>If the operation is succesful you can access the various file properties in this manner.</p>
+<div class="highlight-python"><pre>Double fs = (Double) canFile.getProperties().get("samplerate");</pre>
+</div>
+<p>Please refer to the JAVADOC_LINK for a more detailed description of the CanorisFile class.</p>
+</div>
+<div class="section" id="retrieve-all-files">
+<span id="id1"></span><h2>3) Retrieve all files<a class="headerlink" href="#retrieve-all-files" title="Permalink to this headline">¶</a></h2>
+<p>To get the all files that we have uploaded we simply do:</p>
+<div class="highlight-python"><pre>Page pager = manager.getFiles();</pre>
+</div>
+<p>The pager object can be used to access the files and navigate to other pages (if any).</p>
+</div>
+<div class="section" id="request-file-conversions">
+<span id="retrieve-file-conversion"></span><h2>4) Request file conversions<a class="headerlink" href="#request-file-conversions" title="Permalink to this headline">¶</a></h2>
+<p>To request a conversion we have to of course first obtain the file. Refer to previous sections for that.
+Once we have the file we can get its conversions like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">conversions</span> <span class="o">=</span> <span class="n">canorisFile</span><span class="o">.</span><span class="n">getConversions</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>We can then ask for a specific conversion using the following code:</p>
+<div class="highlight-python"><pre>InputStream in = manager.getConversion(file, "mp3_128kb");</pre>
+</div>
+</div>
+<div class="section" id="handle-jsonnode-results">
+<span id="id2"></span><h2>5) Handle JsonNode results<a class="headerlink" href="#handle-jsonnode-results" title="Permalink to this headline">¶</a></h2>
+<p>In some cases the response contains a deeply nested Json response. In those we return a <a class="reference external" href="http://jackson.codehaus.org/1.1.2/javadoc/org/codehaus/jackson/JsonNode.html">JsonNode</a> object.
+Here&#8217;s an example:</p>
+<div class="highlight-python"><pre>String template = "[{\"operation\": \"vocaloid\", \"parameters\": {\"input\": \"{{ test_input }}\"}}]";
+JsonNode jsonResponse = manager.updateTemplate(template, "test");</pre>
+</div>
+<p>Of course the jsonResponse will be <em>null</em> if template with the given name is found.
+If a template is found you can access its properties in the following way:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">jsonResponse</span><span class="o">.</span><span class="n">findValue</span><span class="p">(</span><span class="s">&quot;input&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">toString</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>This of course leaves open the possibility of a null pointer exception so you should always check for the existence
+of the property you are trying to access.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Simple files howto</a><ul>
+<li><a class="reference internal" href="#upload-a-file">1) Upload a file</a></li>
+<li><a class="reference internal" href="#retrieve-a-file">2) Retrieve a file</a></li>
+<li><a class="reference internal" href="#retrieve-all-files">3) Retrieve all files</a></li>
+<li><a class="reference internal" href="#request-file-conversions">4) Request file conversions</a></li>
+<li><a class="reference internal" href="#handle-jsonnode-results">5) Handle JsonNode results</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="common_setup.html"
+                        title="previous chapter">Common Setup</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="exception_handling.html"
+                        title="next chapter">Exception Handling</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/howto.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="exception_handling.html" title="Exception Handling"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="common_setup.html" title="Common Setup"
+             >previous</a> |</li>
+        <li><a href="index.html">Canoris-Java-Client v1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Stelios.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2.
+    </div>
+  </body>
+</html>

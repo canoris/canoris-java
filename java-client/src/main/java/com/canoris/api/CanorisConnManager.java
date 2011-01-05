@@ -70,6 +70,10 @@ public class CanorisConnManager {
 	private static CanorisConnManager instance = null;
 	// The object mapper to be used globally
 	private static ObjectMapper mapper;
+	
+	private String proxyURL = "";
+	private int proxyPort = 0;
+	private String proxyProtocol = "";
 
 	protected CanorisConnManager() {
 	}
@@ -90,6 +94,30 @@ public class CanorisConnManager {
 	}
 	public void setUseProxy(boolean useProxy) {
 		this.useProxy = useProxy;
+	}
+	
+	public String getProxyURL() {
+		return proxyURL;
+	}
+
+	public void setProxyURL(String proxyURL) {
+		this.proxyURL = proxyURL;
+	}
+
+	public int getProxyPort() {
+		return proxyPort;
+	}
+
+	public void setProxyPort(int proxyPort) {
+		this.proxyPort = proxyPort;
+	}
+
+	public String getProxyProtocol() {
+		return proxyProtocol;
+	}
+
+	public void setProxyProtocol(String proxyProtocol) {
+		this.proxyProtocol = proxyProtocol;
 	}
 
 	/**
@@ -132,8 +160,7 @@ public class CanorisConnManager {
 
 		HttpEntity resEntity = response.getEntity();
 		CanorisFile canFile = null;
-		// TODO: make a mapper class that encapsulates this process, KEEP IT
-		// CLEAN!!!
+
 		if (resEntity != null) {
 			canFile = new CanorisFile();
 			Map<String, Object> map = mapper.readValue(EntityUtils
@@ -541,7 +568,7 @@ public class CanorisConnManager {
 		HttpClient httpClient;
 		// Check for proxy
 		if (useProxy)
-			httpClient = setupProxy("proxy.upf.edu", 8080, "http");
+			httpClient = setupProxy(getProxyURL(), getProxyPort(), getProxyProtocol());
 		else
 			httpClient = new DefaultHttpClient();
 

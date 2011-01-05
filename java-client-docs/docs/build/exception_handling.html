@@ -48,7 +48,7 @@
 <span id="id1"></span><h1>Exception Handling<a class="headerlink" href="#exception-handling" title="Permalink to this headline">¶</a></h1>
 <p>The canoris java client library throws quite a few exceptions due to the use of the HttpClient
 and Jackson libraries. The exception that is meaningful though and you should be catching is
-the LINK&#8212;-&gt;CanorisException which wraps a <a class="reference external" href="http://jackson.codehaus.org/1.0.1/javadoc/org/codehaus/jackson/JsonParseException.html">JsonParseException</a>.</p>
+the <a class="reference external" href="../../javadoc/com/canoris/api/exception/CanorisException.html">CanorisException</a> which wraps a <a class="reference external" href="http://jackson.codehaus.org/1.0.1/javadoc/org/codehaus/jackson/JsonParseException.html">JsonParseException</a>.</p>
 <p>This exception contains the HTTP error code in case something went wrong.
 For example trying to perform a similarity search in a collection that has less than 30 files
 will result in the <strong>409</strong> error. Below you can see an example:</p>

@@ -33,5 +33,14 @@ To set the base URL:
   CanorisAPI.getInstance().setBaseURL("<base_URL>");
 
 
+===========
+Setup Proxy
+===========
 
+You can use a proxy if needed. To setup the proxy use the following code.
+
+::
+  
+  CanorisResourceManager.configProxy("example.proxy.com", 8080, "http");
+  CanorisResourceManager.setUseProxy(true);
 

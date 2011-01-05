@@ -19,16 +19,12 @@ import com.canoris.api.resources.Pager;
  * TODO: 1) Add javadoc to all methods.
  * 		 2) Add getPage method to get a specific page.
  * 		 3) Externalize strings (Do an interface with constants or something...)
- * 		 4) Imlement configProxy method
  */
 /**
  * This class is the main communication point with the back-end. 
  * Through this class you can perform all the operation the back-end offers.
  */
 public class CanorisResourceManager {
-	
-	private static final String COLLECTIONS = "collections";
-	private static final String FILE_KEY = "";
 	
 	private CanorisConnManager canorisRequest;
 	
@@ -564,18 +560,26 @@ public class CanorisResourceManager {
 		return CanorisConnManager.getInstance().getPagedResults(params, null);
 	}
 	/**
+	 * Sets if the communication uses a proxy or not
 	 * 
 	 * @param useProxy
 	 */
 	public void useProxy(boolean useProxy) {
 		CanorisConnManager.getInstance().setUseProxy(useProxy);
 	}
-	// TODO: IMPLEMENT THIS
-	/*
+	/**
+	 * Configures the proxy
+	 * 
+	 * @param host
+	 * @param port
+	 * @param protocol
+	 */
 	public void configProxy(String host, int port, String protocol) {
-		CanorisConnManager.getInstance().setupProxy(host, port, protocol);
+		CanorisConnManager.getInstance().setProxyURL(host);
+		CanorisConnManager.getInstance().setProxyPort(port);
+		CanorisConnManager.getInstance().setProxyProtocol(protocol);
+		// CanorisConnManager.getInstance().setupProxy(host, port, protocol);
 	}
-	*/
 	//------------ GETTERS && SETTERS ---------------
 	public CanorisConnManager getCanorisRequest() {
 		return canorisRequest;
