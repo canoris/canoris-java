@@ -66,12 +66,11 @@ import com.canoris.api.resources.Pager;
 public class CanorisConnManager {
 
 	private static final String DEFAULT_ENCODING = "UTF-8";
-	// TODO: check if we need to use some more strict singleton technique
+	// TODO: why not do it at class-loading time instead of lazy instantiation?
 	private static CanorisConnManager instance = null;
 	// The object mapper to be used globally
-	// TODO: if I would make it final I wouldn't need to instantiate it in the constructor?
-	private static ObjectMapper mapper;
-	private static Lock lock;
+	private static ObjectMapper mapper = new ObjectMapper();
+	private static Lock lock = new ReentrantLock();
 	
 	private HttpHost proxy;
 	private DefaultHttpClient httpClient = null;
@@ -79,11 +78,9 @@ public class CanorisConnManager {
 	protected CanorisConnManager() {
 	}
 
-	public static CanorisConnManager getInstance() {
+	public static synchronized CanorisConnManager getInstance() {
 		if (instance == null) {
 			instance = new CanorisConnManager();
-			mapper = new ObjectMapper();
-			lock = new ReentrantLock();
 		}
 		return instance;
 	}
