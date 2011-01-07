@@ -590,6 +590,9 @@ public class CanorisConnManager {
 
 	/*
 	 * Create http client
+	 * 
+	 * TODO: maybe it's better to make this static and run it
+	 * at the beggining...
 	 */
 	protected DefaultHttpClient createClient() {
 		if (httpClient != null) {
