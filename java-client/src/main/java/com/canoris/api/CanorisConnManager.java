@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.antlr.stringtemplate.StringTemplate;
 import org.apache.http.HttpEntity;
@@ -52,9 +54,7 @@ import com.canoris.api.resources.CanorisFile;
 import com.canoris.api.resources.Pager;
 
 /*
- * TODO: 1) javadoc public methods	DONE
- *       2) refactor uploadFile
- * 	 	 3) entity.consumeContent problem in InputStream cases
+ * TODO: 1) Create httpClient once
  */
 /**
  * 
@@ -69,12 +69,13 @@ public class CanorisConnManager {
 	// TODO: check if we need to use some more strict singleton technique
 	private static CanorisConnManager instance = null;
 	// The object mapper to be used globally
+	// TODO: if I would make it final I wouldn't need to instantiate it in the constructor?
 	private static ObjectMapper mapper;
+	private static Lock lock;
 	
-	private String proxyURL = "";
-	private int proxyPort = 0;
-	private String proxyProtocol = "";
-
+	private HttpHost proxy;
+	private DefaultHttpClient httpClient = null;
+	
 	protected CanorisConnManager() {
 	}
 
@@ -82,42 +83,39 @@ public class CanorisConnManager {
 		if (instance == null) {
 			instance = new CanorisConnManager();
 			mapper = new ObjectMapper();
-			// Should I create once the httpClient here?
+			lock = new ReentrantLock();
 		}
 		return instance;
 	}
 
 	private boolean useProxy = false;
-
+	
+	/**
+	 * Checks if proxy is in use.
+	 * 
+	 * @return boolean
+	 */
 	public boolean isUseProxy() {
 		return useProxy;
 	}
-	public void setUseProxy(boolean useProxy) {
-		this.useProxy = useProxy;
-	}
 	
-	public String getProxyURL() {
-		return proxyURL;
-	}
-
-	public void setProxyURL(String proxyURL) {
-		this.proxyURL = proxyURL;
-	}
-
-	public int getProxyPort() {
-		return proxyPort;
-	}
-
-	public void setProxyPort(int proxyPort) {
-		this.proxyPort = proxyPort;
-	}
-
-	public String getProxyProtocol() {
-		return proxyProtocol;
-	}
-
-	public void setProxyProtocol(String proxyProtocol) {
-		this.proxyProtocol = proxyProtocol;
+	/**
+	 * Sets the useProxy value and if true/false removes the proxy from httpClient accordingly.
+	 * 
+	 * TODO: Oleg from httpClient says it's not necessary to remove the parameter.
+	 * 		 Test it somewhere that we don't need proxy.
+	 * 
+	 * @param useProxy
+	 */
+	public void setUseProxy(boolean useProxy) {
+		this.useProxy = true;
+		if (httpClient != null) {
+			if (useProxy && httpClient.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY) == null) {
+				httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+			} else if (!useProxy && httpClient.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY) != null) {
+				httpClient.getParams().removeParameter(ConnRoutePNames.DEFAULT_PROXY);
+			}
+		}
 	}
 
 	/**
@@ -138,8 +136,19 @@ public class CanorisConnManager {
 				+ CanorisAPI.getInstance().getApiKey());
 
 		if (useProxy) {
-			// TODO: maybe a bit of a dirty workaround...
-			httpClient = setupProxy("proxy.upf.edu", 8080, "http");
+			SchemeRegistry supportedSchemes = new SchemeRegistry();
+			// Register the "http" protocol scheme, they are
+			// required by the default operator to look up socket factories.
+			supportedSchemes.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+			// prepare parameters
+			HttpParams params = new BasicHttpParams();
+			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_0);
+			HttpProtocolParams.setContentCharset(params, DEFAULT_ENCODING);
+			HttpProtocolParams.setUseExpectContinue(params, true);
+
+			ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, supportedSchemes);
+			httpClient = new DefaultHttpClient(ccm, params);
+			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 		} else {
 			httpClient = new DefaultHttpClient();
 		}
@@ -236,8 +245,6 @@ public class CanorisConnManager {
 		InputStream in = null;
 		if (response.getEntity() != null) {
 			in = response.getEntity().getContent();
-			// TODO: if I do response.getEntity().consumeContent(); 
-			// then I get socketClosed error, how to rectify this?
 		} 
 		return in;
 	}
@@ -453,10 +460,14 @@ public class CanorisConnManager {
 	private HttpResponse doGet(Map<String, String> params, String resourceType)
 								throws ClientProtocolException, 
 									   IOException, URISyntaxException {
-		HttpClient client = createClient();
 		HttpGet httpGet = new HttpGet(constructURI(params, resourceType));
-		HttpResponse response = client.execute(httpGet);
-
+		HttpResponse response;
+		try {
+			lock.lock();
+			response = createClient().execute(httpGet);
+		} finally {
+			lock.unlock();
+		}
 		return response;
 	}
 	/*
@@ -470,30 +481,41 @@ public class CanorisConnManager {
 								IOException, 
 								URISyntaxException {
 		
-		HttpClient client = createClient();
 		HttpPost httpPost = new HttpPost(constructURI(uriParams, resourceType));
 		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(createParams(postParams), "UTF-8");
 		httpPost.setEntity(entity);
-		
-		return client.execute(httpPost);
+		HttpResponse response;
+		try {
+			lock.lock();
+			response = createClient().execute(httpPost);
+		} finally {
+			lock.unlock();
+		}
+		return response;
 	}
 	/*
 	 * Perform a PUT request
 	 */
 	private HttpResponse doPut(Map<String, String> uriParams, 
 							   Map<String, String> putParams, 
-							   String resourceType) 
+									   String resourceType) 
 							throws 
 								ClientProtocolException, 
 								IOException, 
 								URISyntaxException {
 		
-		HttpClient client = createClient();
 		HttpPut httpPut = new HttpPut(constructURI(uriParams, resourceType));
 		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(createParams(putParams), "UTF-8");
 		httpPut.setEntity(entity);
 		
-		return client.execute(httpPut);
+		HttpResponse response;
+		try {
+			lock.lock();
+			response = createClient().execute(httpPut);
+		} finally {
+			lock.unlock();
+		}
+		return response;
 	}
 	/*
 	 * Perform a DELETE request
@@ -503,11 +525,18 @@ public class CanorisConnManager {
 									ClientProtocolException, 
 									IOException, 
 									URISyntaxException {
-		HttpClient client = createClient();
+		
 		HttpHost target = new HttpHost(CanorisAPI.getInstance().getBaseURL(), 80, "http");
 		HttpDelete httpDelete = new HttpDelete(constructURI(params, resourceType));
 		
-		return client.execute(target, httpDelete);
+		HttpResponse response;
+		try {
+			lock.lock();
+			response = createClient().execute(target, httpDelete);
+		} finally {
+			lock.unlock();
+		}
+		return response;
 	}
 
 	/*
@@ -561,40 +590,40 @@ public class CanorisConnManager {
 		}
 		return qparams;
 	}
-	/*
-	 * Setup client
-	 */
-	private HttpClient createClient() {
-		HttpClient httpClient;
-		// Check for proxy
-		if (useProxy)
-			httpClient = setupProxy(getProxyURL(), getProxyPort(), getProxyProtocol());
-		else
-			httpClient = new DefaultHttpClient();
 
-		return httpClient;
+	/*
+	 * Create http client
+	 */
+	protected DefaultHttpClient createClient() {
+		if (httpClient != null) {
+			return httpClient;
+		} else {
+			SchemeRegistry supportedSchemes = new SchemeRegistry();
+			// Register the "http" protocol scheme, they are
+			// required by the default operator to look up socket factories.
+			supportedSchemes.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+			// prepare parameters
+			HttpParams params = new BasicHttpParams();
+			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_0);
+			HttpProtocolParams.setContentCharset(params, DEFAULT_ENCODING);
+			HttpProtocolParams.setUseExpectContinue(params, true);
+	
+			ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, supportedSchemes);
+			this.httpClient = new DefaultHttpClient(ccm, params);
+	
+			// Check for proxy
+			if (useProxy)
+				httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+			
+			return httpClient;
+		}
 	}
 	/*
 	 * Helper method to setup proxy
 	 */
-	protected HttpClient setupProxy(String proxyAddress, Integer port, String protocol) {
+	protected void setupProxy(String proxyAddress, Integer port, String protocol) {
 		// Create proxy
-		HttpHost proxy = new HttpHost(proxyAddress, port, protocol);
-		SchemeRegistry supportedSchemes = new SchemeRegistry();
-		// Register the "http" protocol scheme, they are
-		// required by the default operator to look up socket factories.
-		supportedSchemes.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-		// prepare parameters
-		HttpParams params = new BasicHttpParams();
-		HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_0);
-		HttpProtocolParams.setContentCharset(params, DEFAULT_ENCODING);
-		HttpProtocolParams.setUseExpectContinue(params, true);
-
-		ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, supportedSchemes);
-		DefaultHttpClient httpClient = new DefaultHttpClient(ccm, params);
-		httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-
-		return httpClient;
+		proxy = new HttpHost(proxyAddress, port, protocol);
 	}
 
 }

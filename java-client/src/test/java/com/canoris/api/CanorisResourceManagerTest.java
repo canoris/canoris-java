@@ -122,12 +122,14 @@ public class CanorisResourceManagerTest {
 	@Test
 	public void testDownloadFile() {
 		CanorisFile file = new CanorisFile("b41bf3e6e37540608e30fc1281804ed0");
+		InputStream in1 = null;
+		InputStream in2 = null;
 		try {
 			// File parameter
-			InputStream in1 = manager.downloadFile(file);
+			in1 = manager.downloadFile(file);
 			Assert.assertNotNull(in1);
 			// String parameter
-			InputStream in2 = manager.downloadFile(file);
+			in2 = manager.downloadFile(file);
 			Assert.assertNotNull(in2);
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
@@ -138,6 +140,14 @@ public class CanorisResourceManagerTest {
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			try {
+				in1.close();
+				in2.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	

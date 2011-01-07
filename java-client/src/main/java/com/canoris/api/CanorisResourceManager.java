@@ -26,9 +26,6 @@ import com.canoris.api.resources.Pager;
  */
 public class CanorisResourceManager {
 	
-	private CanorisConnManager canorisRequest;
-	
-	
 	/**
 	 * Creates a file resource. You can pass extra parameters if applicable and the method 
 	 * will use them as required.
@@ -96,7 +93,7 @@ public class CanorisResourceManager {
 	}
 	/**
 	 * Return an InputStream representing the requested file.
-	 * The user has to manually handle the inputStream.
+	 * You MUST close the stream manually, if not it will block the operation. 
 	 * 
 	 * @param file
 	 * @return InputStream
@@ -113,7 +110,7 @@ public class CanorisResourceManager {
 	}
 	/**
 	 * Return an InputStream representing the requested file.
-	 * The user has to manually handle the inputStream.
+	 * You MUST close the stream manually, if not it will block the operation.
 	 * 
 	 * @param fileKey
 	 * @return InputStream
@@ -575,18 +572,7 @@ public class CanorisResourceManager {
 	 * @param protocol
 	 */
 	public void configProxy(String host, int port, String protocol) {
-		CanorisConnManager.getInstance().setProxyURL(host);
-		CanorisConnManager.getInstance().setProxyPort(port);
-		CanorisConnManager.getInstance().setProxyProtocol(protocol);
-		// CanorisConnManager.getInstance().setupProxy(host, port, protocol);
-	}
-	//------------ GETTERS && SETTERS ---------------
-	public CanorisConnManager getCanorisRequest() {
-		return canorisRequest;
-	}
-
-	public void setCanorisRequest(CanorisConnManager canorisRequest) {
-		this.canorisRequest = canorisRequest;
+		CanorisConnManager.getInstance().setupProxy(host, port, protocol);
 	}
 	
 }

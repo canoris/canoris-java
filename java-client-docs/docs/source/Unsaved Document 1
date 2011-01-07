@@ -1,0 +1,10 @@
+TODO
+
+we can have 1 httpClient and 
+
+setParameter(ConnPNameRoute.DEFAULT_PROXY, proxy)
+remoteParameter(ConnPNameRoute.DEFAULT_PROXY) 
+
+this way we don't need to create a client each time, which is NOT recommended.
+
+
