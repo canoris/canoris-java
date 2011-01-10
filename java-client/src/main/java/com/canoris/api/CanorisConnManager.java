@@ -43,6 +43,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.util.EntityUtils;
+
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -453,6 +454,9 @@ public class CanorisConnManager {
         /* N.B. locking and reusing the HttpClient object has as a consequence
          * that you can do only 1 request at a time. If an application needs to
          * do many concurrent requests we should revisit this design. - Vincent
+         * 
+         * FIXME: Use MultiThreadedHttpConnectionManager. No need to even use locking.
+         * 		  Make test case for it ASAP. - Stelios
          */
         try {
             lock.lock();
@@ -589,6 +593,7 @@ public class CanorisConnManager {
         for (String key : params.keySet()) {
             qparams.add(new BasicNameValuePair(key, params.get(key)));
         }
+        
         return qparams;
     }
 
