@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.antlr.stringtemplate.StringTemplate;
 import org.apache.http.HttpEntity;
@@ -43,7 +41,6 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.util.EntityUtils;
-
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -71,7 +68,6 @@ public class CanorisConnManager {
     private static CanorisConnManager instance = null;
     // The object mapper to be used globally
     private static ObjectMapper mapper = new ObjectMapper();
-    private static Lock lock = new ReentrantLock();
 
     private HttpHost proxy;
     private DefaultHttpClient httpClient = null;
@@ -451,21 +447,10 @@ public class CanorisConnManager {
                                        CanorisException {
         HttpGet httpGet = new HttpGet(constructURI(params, resourceType));
         HttpResponse response;
-        /* N.B. locking and reusing the HttpClient object has as a consequence
-         * that you can do only 1 request at a time. If an application needs to
-         * do many concurrent requests we should revisit this design. - Vincent
-         * 
-         * FIXME: Use MultiThreadedHttpConnectionManager. No need to even use locking.
-         * 		  Make test case for it ASAP. - Stelios
-         */
-        try {
-            lock.lock();
-            response = createClient().execute(httpGet);
-            checkResponseForErrors(response);
-            return response;
-        } finally {
-            lock.unlock();
-        }
+        response = createClient().execute(httpGet);
+        checkResponseForErrors(response);
+        
+        return response;
     }
 
     /*
@@ -484,14 +469,10 @@ public class CanorisConnManager {
         UrlEncodedFormEntity entity = new UrlEncodedFormEntity(createParams(postParams), "UTF-8");
         httpPost.setEntity(entity);
         HttpResponse response;
-        try {
-            lock.lock();
-            response = createClient().execute(httpPost);
-            checkResponseForErrors(response);
-            return response;
-        } finally {
-            lock.unlock();
-        }
+        response = createClient().execute(httpPost);
+        checkResponseForErrors(response);
+            
+        return response;
     }
     /*
      * Perform a PUT request
@@ -510,14 +491,10 @@ public class CanorisConnManager {
         httpPut.setEntity(entity);
 
         HttpResponse response;
-        try {
-            lock.lock();
-            response = createClient().execute(httpPut);
-            checkResponseForErrors(response);
-            return response;
-        } finally {
-            lock.unlock();
-        }
+        response = createClient().execute(httpPut);
+        checkResponseForErrors(response);
+        
+        return response;
     }
     /*
      * Perform a DELETE request
@@ -534,14 +511,10 @@ public class CanorisConnManager {
         HttpDelete httpDelete = new HttpDelete(uri);
 
         HttpResponse response;
-        try {
-            lock.lock();
-            response = createClient().execute(target, httpDelete);
-            checkResponseForErrors(response);
-            return response;
-        } finally {
-            lock.unlock();
-        }
+        response = createClient().execute(target, httpDelete);
+        checkResponseForErrors(response);
+        
+        return response;
     }
 
     /*
