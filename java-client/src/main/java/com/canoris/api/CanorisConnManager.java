@@ -468,7 +468,6 @@ public class CanorisConnManager {
         HttpPost httpPost = new HttpPost(constructURI(uriParams, resourceType));
         UrlEncodedFormEntity entity = new UrlEncodedFormEntity(createParams(postParams), "UTF-8");
         httpPost.setEntity(entity);
-        
         HttpResponse response;
         response = createClient().execute(httpPost);
         checkResponseForErrors(response);
@@ -499,11 +498,11 @@ public class CanorisConnManager {
     }
     /*
      * Perform a DELETE request
-     */ beggining...
+     */
     private HttpResponse doDelete(Map<String, String> params, String resourceType)
                                 throws
                                     ClientProtocolException,
-                                    beggining...        IOException,
+                                    IOException,
                                     URISyntaxException,
                                     CanorisException {
 
