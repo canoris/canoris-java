@@ -468,6 +468,7 @@ public class CanorisConnManager {
         HttpPost httpPost = new HttpPost(constructURI(uriParams, resourceType));
         UrlEncodedFormEntity entity = new UrlEncodedFormEntity(createParams(postParams), "UTF-8");
         httpPost.setEntity(entity);
+        
         HttpResponse response;
         response = createClient().execute(httpPost);
         checkResponseForErrors(response);
@@ -498,11 +499,11 @@ public class CanorisConnManager {
     }
     /*
      * Perform a DELETE request
-     */
+     */ beggining...
     private HttpResponse doDelete(Map<String, String> params, String resourceType)
                                 throws
                                     ClientProtocolException,
-                                    IOException,
+                                    beggining...        IOException,
                                     URISyntaxException,
                                     CanorisException {
 
@@ -573,8 +574,7 @@ public class CanorisConnManager {
     /*
      * Create http client
      *
-     * TODO: maybe it's better to make this static and run it
-     * at the beggining...
+     * TODO: maybe it's better to make a factory for this...
      */
     protected DefaultHttpClient createClient() {
         if (httpClient != null) {
