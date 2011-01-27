@@ -6,9 +6,11 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 
 import com.canoris.api.exception.CanorisException;
 import com.canoris.api.resources.CanorisFile;
@@ -43,6 +45,11 @@ public class CanorisResourceManager {
     public CanorisResource createFile(String filePath, Map<String,String> params) throws ClientProtocolException, URISyntaxException, IOException {
         CanorisConnManager conManager = CanorisConnManager.getInstance();
         return conManager.uploadFile(filePath);
+    }
+    
+    // TODO: implement me!
+    public CanorisResource createFileFromURL(String url, Map<String,String> params) throws ClientProtocolException, URISyntaxException, IOException, CanorisException {
+    	return CanorisConnManager.getInstance().uploadFileFromURL(url, Constants.URI_FILES);
     }
     /**
      * Returns a Pager object to be used for navigating the pages or
@@ -176,6 +183,30 @@ public class CanorisResourceManager {
         params.put("filter", filter);
 
         return CanorisConnManager.getInstance().getResourceAsMap(params, Constants.URI_FILE_ANALYSIS);
+    }
+    /**
+     * Returns the analysis frames
+     * 
+     * @param fileKey
+     * @return JsonNode
+     * @throws JsonParseException
+     * @throws JsonMappingException
+     * @throws ParseException
+     * @throws IOException
+     * @throws URISyntaxException
+     * @throws CanorisException
+     */
+    public JsonNode getAnalysisFrames(String fileKey) 
+    								throws JsonParseException, 
+    									   JsonMappingException, 
+    									   ParseException, 
+    									   IOException, 
+    									   URISyntaxException, 
+    									   CanorisException {
+    	Map<String,String> params = new HashMap<String, String>();
+    	params.put("fileKey", fileKey);
+    	
+    	return CanorisConnManager.getInstance().getResourcesAsTree(params, Constants.URI_FILE_ANALYSIS_FRAMES);
     }
     /**
      * Gets the visualization of the passed file
@@ -521,7 +552,57 @@ public class CanorisResourceManager {
         return CanorisConnManager.getInstance().getResourceAsMap(params, Constants.URI_COLLECTION_SIMILAR);
     }
     /* ***************************** PAGING ***************************** */
-    // What if there is no after or before page
+    /**
+     * Gets the requested page.
+     * Works with old and new paging style depending on parameters passed.
+     *
+     * @return Pager
+     * @throws ClientProtocolException
+     * @throws IOException
+     * @throws URISyntaxException
+     * @throws CanorisException
+     */
+    public Pager getPage(Pager pager)
+    						throws ClientProtocolException,
+						           IOException,
+						           URISyntaxException,
+						           CanorisException {
+		Map<String, String> params = new HashMap<String, String>();
+		if (pager.getLimit() != null && pager.getStart() != null) {
+			params.put("start", pager.getStart());
+			params.put("limit", pager.getLimit());
+		} else {
+			params.put("pageNumber", pager.getPageNumber());
+		}
+
+		return CanorisConnManager.getInstance().getPagedResults(params, Constants.URI_PAGING);
+    }
+    /**
+     * Gets the requested page.
+     * Returns the page corresponding to the start parameter 
+     * with the page size based on the limit parameter
+     * 
+     * Actually this works like this:
+     * page with start=1 limit=2 so next page is 3
+     * using start=1 limit=5 next page will be 6 and so on
+     *
+     * @return Pager
+     * @throws ClientProtocolException
+     * @throws IOException
+     * @throws URISyntaxException
+     * @throws CanorisException
+     */
+    public Pager getPage(String start, String limit)
+    						throws ClientProtocolException,
+						           IOException,
+						           URISyntaxException,
+						           CanorisException {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("start", start);
+		params.put("limit", limit);
+
+		return CanorisConnManager.getInstance().getPagedResults(params, Constants.URI_PAGING);
+    }
     /**
      * Gets the next page. It extracts the page number by the pager.
      *
@@ -538,7 +619,7 @@ public class CanorisResourceManager {
                                CanorisException {
         Map<String, String> params = new HashMap<String, String>();
         params.put("page", pager.getNext());
-
+        
         return CanorisConnManager.getInstance().getPagedResults(params, null);
     }
     /**

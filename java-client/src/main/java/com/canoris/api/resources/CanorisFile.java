@@ -42,19 +42,16 @@ public class CanorisFile extends CanorisResource {
 	/*
 	 * Helper methods to get from the properties map the given property
 	 */
-	@SuppressWarnings("unchecked")
-	public Map<String, String> getConversions() {	
-		return (Map<String, String>) properties.get(CONVERSIONS);
+	public String getConversions() {	
+		return (String) properties.get(CONVERSIONS);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public Map<String, String> getVisualizations() {
-		return (Map<String, String>) properties.get(VISUALIZATIONS);
+	public String getVisualizations() {
+		return (String) properties.get(VISUALIZATIONS);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public Map<String, String> getAnalysis() {
-		return (Map<String, String>) properties.get(ANALYSIS);
+	public String getAnalysis() {
+		return (String) properties.get(ANALYSIS);
 	}
 	
 }

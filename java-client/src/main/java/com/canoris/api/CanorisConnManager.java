@@ -178,6 +178,33 @@ public class CanorisConnManager {
 
         return canFile;
     }
+    
+    // TODO: create upload file from URL
+    public CanorisFile uploadFileFromURL(String url, String resourceType) 
+    									throws ClientProtocolException, 
+    										   IOException, 
+    										   URISyntaxException, 
+    										   CanorisException {
+    	Map<String, String> postParams = new HashMap<String, String>();
+    	postParams.put("url", url);
+    	Map<String, String> uriParams = new HashMap<String, String>();
+    	
+    	HttpResponse response = doPost(uriParams,postParams, resourceType);
+    	
+    	CanorisFile canFile = null;
+        if (response.getEntity() != null) {
+            canFile = new CanorisFile();
+            Map<String, Object> map = mapper.readValue(EntityUtils.toString(response.getEntity()),
+                                                        new TypeReference<Map<String, Object>>() {});
+            canFile.setProperties(map);
+            canFile.setKey((String) map.get("key"));
+            canFile.setRef((String) map.get("ref"));
+            response.getEntity().consumeContent();
+        }
+        
+        return canFile;
+    }
+    
     /**
      * Returns a canorisFile or null if no file is found with the give fileKey.
      *
@@ -519,7 +546,7 @@ public class CanorisConnManager {
 
     /*
      * Helper method to construct a URI.
-     * TODO: It will fail is params is null, need to fix this.
+     * TODO: It will fail if params is null, need to fix this.
      *          It's valid to have no params in some cases.
      */
     private URI constructURI(Map<String,String> params, String resourceType)
@@ -534,6 +561,7 @@ public class CanorisConnManager {
             return new URI(params.get("ref") + "&api_key=" + CanorisAPI.getInstance().getApiKey());
         }
         // The page contains the complete URL to use
+        // it's to get next/previous pages
         else if (params.get("page") != null) {
             return new URI(params.get("page") + "&api_key=" + CanorisAPI.getInstance().getApiKey());
         }
@@ -547,6 +575,16 @@ public class CanorisConnManager {
                 for (String key : params.keySet()) {
                     qparams.add(new BasicNameValuePair(key, params.get(key)));
                 }
+            }
+            // Special case paging...
+            else if(Constants.URI_PAGING.equals(resourceType)) {
+            	if (params.get("start") != null
+            			&& params.get("limit") != null) {
+            		qparams.add(new BasicNameValuePair("start", params.get("start")));
+            		qparams.add(new BasicNameValuePair("limit", params.get("limit")));
+            	} else if (params.get("pageNumber") != null) {
+            		qparams.add(new BasicNameValuePair("pageNumber", params.get("pageNumber")));
+            	}
             }
             // Normal case, just replace the placeholders
             else {
@@ -571,7 +609,7 @@ public class CanorisConnManager {
     }
 
     /*
-     * Create http client
+     * Create http clientCanorisConnManager conManager = CanorisConnManager.getInstance();
      *
      * TODO: maybe it's better to make a factory for this...
      */

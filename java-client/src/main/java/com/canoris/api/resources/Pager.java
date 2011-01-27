@@ -3,18 +3,17 @@ package com.canoris.api.resources;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
 /**
  * Class to simply implement the paging logic of the CanorisAPI collections
  * 
  * The pager class is used for all resources that return paged results. 
- * Depending on the type of the resource the respective class members will be 
- * null or not. For example when we request files the total_files field will
- * contain a list with all the files returned. If there are more pages the 
- * nextPage will contain the link to be used for retrieving the next page.
- * In case one of the fields is not applicable to the current request it 
- * will simply be null.
+ * If there are more pages the nextPage will contain the link to be used 
+ * for retrieving the next page. In case one of the fields is not applicable 
+ * to the current request it will simply be null.
+ * 
+ * In addition the pager can be used for "old" and "new" style of paging.
+ * Old has only the pageNumber field
+ * New has start (equal to pageNumber) and limit (page size)
  * 
  * @author stelios
  *
@@ -47,50 +46,59 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * 
  */
 public class Pager {
-	// TODO: check annotation for these type of field names
-	@JsonProperty(value="total_files")
-	private String totalFiles;
-	@JsonProperty(value="total_collections")
-	private String totalCollections;
+
+	private String pageNumber;
+	private String total;
 	private String ref;
 	private String next;
 	private String previous;
+	private String start;
+	private String limit;
 	
-	private List files;
-	private Map templates;
-	private List collections;
-
-	public List getFiles() {
-		return files;
+	private List items;
+	
+	/**
+	 * Empty constructor
+	 */
+	public Pager() {
 	}
-	public void setFiles(List files) {
-		this.files = files;
-	}		
-	public Map getTemplates() {
-		return templates;
+	/**
+	 * Constructor
+	 * 
+	 * @param pageNumber
+	 */
+	public Pager(String pageNumber) {
+		this.pageNumber = pageNumber;
 	}
-	public void setTemplates(Map templates) {
-		this.templates = templates;
-	}
-	public List getCollections() {
-		return collections;
-	}
-	public void setCollections(List collections) {
-		this.collections = collections;
+	/**
+	 * Constructor
+	 * 
+	 * @param start
+	 * @param limit
+	 */
+	public Pager(String start, String limit) {
+		this.start = start;
+		this.limit = limit;
 	}
 	
 	//----------- GETTERS && SETTERS
-	public String getTotalFiles() {
-		return totalFiles;
+	public List getItems() {
+		return items;
 	}
-	public void setTotalFiles(String totalFiles) {
-		this.totalFiles = totalFiles;
+	public void setItems(List items) {
+		this.items = items;
 	}
-	public String getTotalCollections() {
-		return totalCollections;
+	public String getTotal() {
+		return total;
 	}
-	public void setTotalCollections(String totalCollections) {
-		this.totalCollections = totalCollections;
+	public String getPageNumber() {
+		return pageNumber;
+	}
+	public void setPageNumber(String pageNumber) {
+		this.pageNumber = pageNumber;
+	}
+	public void setTotal(String total) {
+		this.total = total;
 	}
 	public String getRef() {
 		return ref;
@@ -110,4 +118,17 @@ public class Pager {
 	public void setPrevious(String previous) {
 		this.previous = previous;
 	}
+	public String getStart() {
+		return start;
+	}
+	public void setStart(String start) {
+		this.start = start;
+	}
+	public String getLimit() {
+		return limit;
+	}
+	public void setLimit(String limit) {
+		this.limit = limit;
+	}
+	
 }

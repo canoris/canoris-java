@@ -14,6 +14,8 @@ public class Constants {
 	public final static String URI_FILE_SERVE = "/files/$fileKey$/serve";
 	public final static String URI_FILE_ANALYSIS = "/files/$fileKey$/analysis/$filter$";
 	
+	public final static String URI_FILE_ANALYSIS_FRAMES = "/files/$fileKey$/analysis_frames";
+	
 	public final static String URI_FILE_CONVERSIONS = "/files/$fileKey$/conversions";
 	public final static String URI_FILE_CONVERSION = "/files/$fileKey$/conversions/$conversion$";
 	
@@ -33,4 +35,6 @@ public class Constants {
 	public final static String URI_TASK = "/processing/tasks/$taskId$";
 	
 	public final static String URI_PHONEMES = "/language/text2phonemes";
+	
+	public final static String URI_PAGING = "/files/";
 }

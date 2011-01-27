@@ -8,8 +8,11 @@ import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.Map;
 
+import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,28 +26,30 @@ import com.canoris.api.resources.Pager;
 /*
  * TODO: 1) Add asserts to make test cases robust
  *             PARTIALY DONE
- *          2) Make tests completely independent
+ *       2) Make tests completely independent
  *             check the method comment on this one ---> getSimilaritySearch
+ *       3) Check manualy for errors      
  */
 public class CanorisResourceManagerTest {
 
     private CanorisResourceManager manager = null;
     // N.B. change these to run the tests yourself
     private String taskId = "c334b763f4ee476b995ed67cfaf67dda"; // Use an existing taskId
-    private String testFile = "/home/v/Sounds/61697__inchadney__park-in-autumn.wav";
-    private String apiKey = "4768e6418bda4d81a67656e34df8b89b";
-
+    private String testFile = "/home/stelios/Downloads/Catalan_Smoke_Signals.mp3";
+    private String apiKey = "b35645fbadfc468ba25ed56a20049360";
+    private String fileKey = "4d6f3db666f949ed9341e4f2b91b29fe";
+    
     @Before
     public void setup() {
         CanorisAPI api = CanorisAPI.getInstance();
-        // api.setBaseURL("api.canoris.com");
+        api.setBaseURL("api-test.canoris.com");
         api.setApiKey(this.apiKey);
 
         this.manager = new CanorisResourceManager();
-        manager.useProxy(false);
-        //manager.configProxy("proxy.upf.edu", 8080, "http");
+        manager.useProxy(true);
+        manager.configProxy("proxy.upf.edu", 8080, "http");
     }
-    /*
+    
     @Test
     public void testCreateFile() {
         CanorisResourceManager manager = new CanorisResourceManager();
@@ -52,8 +57,7 @@ public class CanorisResourceManagerTest {
 
         try {
             // FIXME: casting is shit! avoid it somehow
-            CanFile file = (CanFile) manager.createFile(filePath, params)
-            File("/home/stelios/Downloads/Catalan_Smoke_Signals.mp3", null);
+            CanorisFile file = (CanorisFile) manager.createFile(this.testFile, null);
             // Assertions
             Assert.assertNotNull(file);
             Assert.assertNotNull(file.getProperties());
@@ -65,18 +69,39 @@ public class CanorisResourceManagerTest {
             e.printStackTrace();
         }
     }
-    */
+    
+    
+    @Test
+    public void testCreateFileFromURL() {
+    	try {
+			CanorisFile file = (CanorisFile) manager.createFileFromURL("http://student-kmt.hku.nl/~ciska/songs/Echo_Motif.mp3", null);
+			Assert.assertNotNull(file);
+			Assert.assertNotNull(file.getAnalysis());
+			// TODO: add asserts
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
+			e.printStackTrace();
+		}
+    }
+    
     /*
+     * OLD AND NEW PAGING STYLE
      * Get a pager, if it contains more than one page
      * get next page and then previous page
      */
     @Test
     public void testGetFiles() {
         try {
+        	// OLD STYLE
             Pager pager = manager.getFiles();
             Assert.assertNotNull(pager);
             // The files is an array....
-            Assert.assertNotNull(pager.getFiles().get(0));
+            Assert.assertNotNull(pager.getItems().get(0));
             if (pager.getNext() != null) {
                 pager = manager.getNextPage(pager);
                 Assert.assertNotNull(pager);
@@ -84,6 +109,7 @@ public class CanorisResourceManagerTest {
                 pager = manager.getPreviousPage(pager);
                 Assert.assertNotNull(pager);
             }
+            // NEW STYLE
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -94,10 +120,45 @@ public class CanorisResourceManagerTest {
             e.printStackTrace();
         }
     }
+    
+    @Test
+    public void testGetPage() {
+    	try {
+    		Pager pager = new Pager();
+    		
+    		//------------ OLD STYLE
+    		pager.setPageNumber("0");
+    		pager = manager.getPage(pager);
+    		Assert.assertNotNull(pager);
+    		Assert.assertNotNull(pager.getTotal());
+    		
+    		//------------ NEW STYLE
+    		// test getPage(Pager pager)
+    		pager.setStart("0");
+    		pager.setLimit("2");
+			pager = manager.getPage(pager);
+			Assert.assertNotNull(pager);
+    		Assert.assertNotNull(pager.getTotal());
+			
+    		// test getPage(String start, String limit)
+			pager = null;
+			pager = manager.getPage("0", "2");
+			Assert.assertNotNull(pager);
+    		Assert.assertNotNull(pager.getTotal());
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
+			e.printStackTrace();
+		}
+    }
 
     @Test
     public void testGetFile() {
-        CanorisFile file = new CanorisFile("b41bf3e6e37540608e30fc1281804ed0");
+        CanorisFile file = new CanorisFile(this.fileKey);
         try {
             // File parameter
             CanorisFile response1 = manager.getFile(file);
@@ -105,7 +166,7 @@ public class CanorisResourceManagerTest {
             Double fs = (Double) response1.getProperties().get("samplerate");
             Assert.assertTrue(fs == 44100.0);
             // String parameter
-            CanorisFile response2 = manager.getFile("b41bf3e6e37540608e30fc1281804ed0");
+            CanorisFile response2 = manager.getFile(this.fileKey);
 
             Assert.assertEquals(response1.getKey(), response2.getKey());
         } catch (ClientProtocolException e) {
@@ -122,7 +183,7 @@ public class CanorisResourceManagerTest {
 
     @Test
     public void testDownloadFile() {
-        CanorisFile file = new CanorisFile("b41bf3e6e37540608e30fc1281804ed0");
+        CanorisFile file = new CanorisFile(this.fileKey);
         InputStream in1 = null;
         InputStream in2 = null;
         try {
@@ -156,7 +217,7 @@ public class CanorisResourceManagerTest {
 
     @Test
     public void testGetConversion() {
-        CanorisFile file = new CanorisFile("b41bf3e6e37540608e30fc1281804ed0");
+        CanorisFile file = new CanorisFile(this.fileKey);
         try {
             InputStream in = manager.getConversion(file, "mp3_128kb");
             Assert.assertNotNull(in);
@@ -186,7 +247,7 @@ public class CanorisResourceManagerTest {
 
     @Test
     public void testGetConversions() {
-        CanorisFile file = new CanorisFile("b41bf3e6e37540608e30fc1281804ed0");
+        CanorisFile file = new CanorisFile(this.fileKey);
         try {
             Map<String,Object> convs = manager.getConversions(file);
             Assert.assertNotNull(convs);
@@ -208,7 +269,7 @@ public class CanorisResourceManagerTest {
 
     @Test
     public void testGetAnalysis() {
-        CanorisFile file = new CanorisFile("b41bf3e6e37540608e30fc1281804ed0");
+        CanorisFile file = new CanorisFile(this.fileKey);
         try {
             Map<String,Object> analysis = manager.getAnalysis(file, null);
             Assert.assertNotNull(analysis);
@@ -217,16 +278,36 @@ public class CanorisResourceManagerTest {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (CanorisException e) {
             e.printStackTrace();
         }
     }
+    
+    @Test
+    public void testGetAnalysisFrames() {
+    	try {
+			JsonNode node = manager.getAnalysisFrames(this.fileKey);
+			Assert.assertNotNull(node);
+			// TODO: add asserts
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (CanorisException e) {
+			e.printStackTrace();
+		}
+    }
 
     @Test
     public void testGetVisualizations() {
-        CanorisFile file = new CanorisFile("b41bf3e6e37540608e30fc1281804ed0");
+        CanorisFile file = new CanorisFile(this.fileKey);
         try {
             Map<String,Object> analysis = manager.getVisualizations(file);
             Assert.assertNotNull(analysis);
@@ -343,12 +424,12 @@ public class CanorisResourceManagerTest {
         try {
             Map<String, Object> response = manager.getTask(taskId);
             Assert.assertNotNull(response);
+            // FIXME: this test will fail silently
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (CanorisException e) {
             e.printStackTrace();
@@ -382,7 +463,7 @@ public class CanorisResourceManagerTest {
         try {
             Pager pager = manager.getCollections();
             Assert.assertNotNull(pager);
-            Assert.assertNotNull(pager.getTotalCollections());
+            Assert.assertNotNull(pager.getTotal());
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
