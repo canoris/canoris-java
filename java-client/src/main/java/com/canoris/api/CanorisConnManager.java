@@ -382,6 +382,35 @@ public class CanorisConnManager {
         return responseMap;
     }
     /**
+     * Creates a resource by executing a POST request and 
+     * returns the response as a JsonNode
+     *
+     * @param uriParams
+     * @param postParams
+     * @param resourceType
+     * @return JsonNode
+     * @throws ClientProtocolException
+     * @throws IOException
+     * @throws URISyntaxException
+     * @throws CanorisException
+     */
+    public JsonNode createResourceAsTree(Map<String,String> uriParams,
+                                         Map<String,String> postParams,
+                                         String resourceType)
+                                            throws
+                                                ClientProtocolException,
+                                                IOException,
+                                                URISyntaxException,
+                                                CanorisException {
+        HttpResponse response = doPost(uriParams, postParams, resourceType);
+        JsonNode jsonNode = null;
+        if (response.getEntity() != null) {
+            jsonNode = mapper.readValue(EntityUtils.toString(response.getEntity()), JsonNode.class);
+            response.getEntity().consumeContent();
+        }
+        return jsonNode;
+    }
+    /**
      * Updates a resource by executing a PUT request.
      *
      * @param urlParams

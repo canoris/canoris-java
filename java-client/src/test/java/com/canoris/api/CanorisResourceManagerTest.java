@@ -28,13 +28,12 @@ import com.canoris.api.resources.Pager;
  *             PARTIALY DONE
  *       2) Make tests completely independent
  *             check the method comment on this one ---> getSimilaritySearch
- *       3) Check manualy for errors      
  */
 public class CanorisResourceManagerTest {
 
     private CanorisResourceManager manager = null;
     // N.B. change these to run the tests yourself
-    private String taskId = "712e76da86c84bfda2e6d09494ae1038"; // Use an existing taskId
+    private String taskId = "fbd28697b6b74b78b125e7521238997d"; // Use an existing taskId
     private String testFile = "/home/stelios/Downloads/Catalan_Smoke_Signals.mp3";
     private String apiKey = "b35645fbadfc468ba25ed56a20049360";
     private String fileKey = "4d6f3db666f949ed9341e4f2b91b29fe";
@@ -91,7 +90,7 @@ public class CanorisResourceManagerTest {
     }
     
     /*
-     * OLD AND NEW PAGING STYLE
+     * TODO: OLD AND NEW PAGING STYLE
      * Get a pager, if it contains more than one page
      * get next page and then previous page
      */
@@ -267,8 +266,10 @@ public class CanorisResourceManagerTest {
     public void testGetAnalysis() {
         CanorisFile file = new CanorisFile(this.fileKey);
         try {
-            Map<String,Object> analysis = manager.getAnalysis(file, null);
+            JsonNode analysis = manager.getAnalysis(file, null);
             Assert.assertNotNull(analysis);
+            // TODO ask Vincent if this can ever be null? empty string maybe?
+            Assert.assertNotNull(analysis.findValue("classical"));
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -322,8 +323,9 @@ public class CanorisResourceManagerTest {
     @Test
     public void testGetTemplates() {
         try {
-            Map<String,Object> templates = manager.getTemplates();
+            JsonNode templates = manager.getTemplates();
             Assert.assertNotNull(templates);
+            // TODO: add asserts
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -341,7 +343,7 @@ public class CanorisResourceManagerTest {
         String templateContent = "[{\"operation\": \"vocaloid\", \"parameters\": " +
                                     "{\"voice\": \"arnau\", \"sequence\": \"{{ my_test3 }}\"}}]";
         try {
-            Map<String, Object> resp = manager.createTemplate(templateName, templateContent);
+            JsonNode resp = manager.createTemplate(templateName, templateContent);
             Assert.assertNotNull(resp);
             // Assert.assertEquals(expected, actual)
         } catch (ClientProtocolException e) {
@@ -419,7 +421,7 @@ public class CanorisResourceManagerTest {
         try {
             Map<String, Object> response = manager.getTask(taskId);
             Assert.assertNotNull(response);
-            Assert.assertEquals(this.taskId, response.get("key"));
+            Assert.assertEquals(taskId, response.get("key"));
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {

@@ -11,7 +11,9 @@ package com.canoris.api.exception;
  */
 public class CanorisException extends Exception {
 
-    private int httpErrorCode;
+	private static final long serialVersionUID = -8546249037388884241L;
+
+	private int httpErrorCode;
     private String httpErrorMessage;
 
     /**
@@ -21,8 +23,6 @@ public class CanorisException extends Exception {
      *             The HTTP error code
      * @param message
      *             The HTTP error message
-     * @param cause
-     *             The initial exception (Throwable)
      */
     public CanorisException(int code, String message) {
         super(String.valueOf(code));

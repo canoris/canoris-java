@@ -19,9 +19,10 @@ import com.canoris.api.resources.Pager;
 
 /*
  * This essentially is just a facade (kind off...) to the CanorisConnManager.
- * TODO: 1) Add javadoc to all methods.
- *          2) Add getPage method to get a specific page.
- *          3) Externalize strings (Do an interface with constants or something...)
+ * TODO: 1) Add javadoc to all methods.					--DONE
+ *       2) Add getPage method to get a specific page.	--DONE
+ *       3) Externalize strings (Do an interface with constants or something...)
+ *       4) Check which methods should return JsonNode
  */
 /**
  * This class is the main communication point with the back-end.
@@ -47,7 +48,19 @@ public class CanorisResourceManager {
         return conManager.uploadFile(filePath);
     }
     
-    // TODO: implement me!
+    /**
+     * Creates a file from the URL parameter. 
+     * Note that creating a file this way will not have a "serve" field so it cannot 
+     * be retrieved. The file is thrown away after it's being processed.
+     * 
+     * @param url
+     * @param params
+     * @return CanorisResource 
+     * @throws ClientProtocolException
+     * @throws URISyntaxException
+     * @throws IOException
+     * @throws CanorisException
+     */
     public CanorisResource createFileFromURL(String url, Map<String,String> params) throws ClientProtocolException, URISyntaxException, IOException, CanorisException {
     	return CanorisConnManager.getInstance().uploadFileFromURL(url, Constants.URI_FILES);
     }
@@ -168,9 +181,18 @@ public class CanorisResourceManager {
         return CanorisConnManager.getInstance().getResources(params, Constants.URI_FILE_CONVERSIONS);
     }
 
-    // TODO: this should return a JsonNode since the analysis is a deeply
-    //         nested Json object. Ask Vincent
-    public Map<String, Object> getAnalysis(CanorisFile file, String filter)
+    /**
+     * Returns the analysis of the file as a JsonNode
+     * 
+     * @param file
+     * @param filter
+     * @return JsonNode
+     * @throws ClientProtocolException
+     * @throws IOException
+     * @throws URISyntaxException
+     * @throws CanorisException
+     */
+    public JsonNode getAnalysis(CanorisFile file, String filter)
                                         throws
                                             ClientProtocolException,
                                             IOException,
@@ -182,7 +204,7 @@ public class CanorisResourceManager {
         params.put("fileKey", file.getKey());
         params.put("filter", filter);
 
-        return CanorisConnManager.getInstance().getResourceAsMap(params, Constants.URI_FILE_ANALYSIS);
+        return CanorisConnManager.getInstance().getResourcesAsTree(params, Constants.URI_FILE_ANALYSIS);
     }
     /**
      * Returns the analysis frames
@@ -227,6 +249,7 @@ public class CanorisResourceManager {
         return CanorisConnManager.getInstance().getResource(params, Constants.URI_FILE_VISUALIZATION);
     }
     /**
+     * Return the visualization of the file
      *
      * @param file
      * @return Map<String,Object>
@@ -245,18 +268,17 @@ public class CanorisResourceManager {
 
     /* ***************************** TEMPLATES ***************************** */
     /**
-     * Gets the list of templates. If non exist it will return a map with
-     * key="template", value="[]"
+     * Gets the list of templates. 
      *
-     * @return Map<String, Object>
+     * @return JsonNode
      * @throws ClientProtocolException
      * @throws IOException
      * @throws URISyntaxException
      * @throws CanorisException
      */
-    public Map<String,Object> getTemplates() throws ClientProtocolException, IOException, URISyntaxException, CanorisException {
+    public JsonNode getTemplates() throws ClientProtocolException, IOException, URISyntaxException, CanorisException {
         Map<String, String> params = new HashMap<String, String>();
-        return CanorisConnManager.getInstance().getResources(params, Constants.URI_TEMPLATES);
+        return CanorisConnManager.getInstance().getResourcesAsTree(params, Constants.URI_TEMPLATES);
     }
     /**
      * Creates a template and returns the response or null
@@ -264,22 +286,24 @@ public class CanorisResourceManager {
      * TODO: This should return a JsonNode??
      *
      * @param templateName
-     * @return Map<String,Object>
+     * @return JsonNode
      * @throws ClientProtocolException
      * @throws IOException
      * @throws URISyntaxException
      * @throws CanorisException
      */
-    public Map<String,Object> createTemplate(String templateName, String templateContent)
+    public JsonNode createTemplate(String templateName, String templateContent)
                                         throws ClientProtocolException, IOException, URISyntaxException, CanorisException {
         Map<String,String> postParams = new HashMap<String, String>(1);
         postParams.put("name", templateName);
         postParams.put("template", templateContent);
 
         Map<String, String> params = new HashMap<String, String>();
-        return CanorisConnManager.getInstance().createResource(params, postParams, Constants.URI_TEMPLATES);
+        return CanorisConnManager.getInstance().createResourceAsTree(params, postParams, Constants.URI_TEMPLATES);
     }
     /**
+     * Updates the template that matches the templateName.
+     * Will throw error if template is not found.
      *
      * @param templateContent
      * @param templateName
@@ -436,7 +460,7 @@ public class CanorisResourceManager {
     }
     /**
      * Deletes the collection. This method does not return a value.
-     * If no exception is thrown the operation will be successful.
+     * If no exception is thrown the operation is considered successful.
      *
      * @param collectionKey
      * @throws ClientProtocolException
