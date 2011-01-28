@@ -609,7 +609,7 @@ public class CanorisConnManager {
     }
 
     /*
-     * Create http clientCanorisConnManager conManager = CanorisConnManager.getInstance();
+     * Create the httpClient 
      *
      * TODO: maybe it's better to make a factory for this...
      */
@@ -642,7 +642,7 @@ public class CanorisConnManager {
      */
     protected void setupProxy(String proxyAddress, Integer port, String protocol) {
         // Create proxy
-        proxy = new HttpHost(proxyAddress, port, protocol);
+        this.proxy = new HttpHost(proxyAddress, port, protocol);
     }
 
 }

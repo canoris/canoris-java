@@ -1,7 +1,6 @@
 package com.canoris.api.resources;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Class to simply implement the paging logic of the CanorisAPI collections
@@ -9,11 +8,11 @@ import java.util.Map;
  * The pager class is used for all resources that return paged results. 
  * If there are more pages the nextPage will contain the link to be used 
  * for retrieving the next page. In case one of the fields is not applicable 
- * to the current request it will simply be null.
+ * to the current request it will be null.
  * 
  * In addition the pager can be used for "old" and "new" style of paging.
- * Old has only the pageNumber field
- * New has start (equal to pageNumber) and limit (page size)
+ * Old => has only the pageNumber field
+ * New => has start (equal to pageNumber) and limit (page size)
  * 
  * @author stelios
  *

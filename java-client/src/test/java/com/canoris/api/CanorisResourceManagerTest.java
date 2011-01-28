@@ -34,10 +34,11 @@ public class CanorisResourceManagerTest {
 
     private CanorisResourceManager manager = null;
     // N.B. change these to run the tests yourself
-    private String taskId = "c334b763f4ee476b995ed67cfaf67dda"; // Use an existing taskId
+    private String taskId = "712e76da86c84bfda2e6d09494ae1038"; // Use an existing taskId
     private String testFile = "/home/stelios/Downloads/Catalan_Smoke_Signals.mp3";
     private String apiKey = "b35645fbadfc468ba25ed56a20049360";
     private String fileKey = "4d6f3db666f949ed9341e4f2b91b29fe";
+    private String collectionKey = "2145d5ea932c4e069eb4b04e15abb3f1"; // Use an existing collectionKey
     
     @Before
     public void setup() {
@@ -194,13 +195,10 @@ public class CanorisResourceManagerTest {
             in2 = manager.downloadFile(file);
             Assert.assertNotNull(in2);
         } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (URISyntaxException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (CanorisException e) {
             e.printStackTrace();
@@ -209,7 +207,6 @@ public class CanorisResourceManagerTest {
                 in1.close();
                 in2.close();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -238,7 +235,6 @@ public class CanorisResourceManagerTest {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (CanorisException e) {
             e.printStackTrace();
@@ -328,8 +324,6 @@ public class CanorisResourceManagerTest {
         try {
             Map<String,Object> templates = manager.getTemplates();
             Assert.assertNotNull(templates);
-            System.out.println(templates.toString());
-            // TODO: how to test this well???
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -340,15 +334,16 @@ public class CanorisResourceManagerTest {
             e.printStackTrace();
         }
     }
-    // Will if template name exists
+    // Will fail if template name exists
     @Test
     public void testCreateTemplate() {
-        String templateName = "test5";
+        String templateName = "test_delete";
         String templateContent = "[{\"operation\": \"vocaloid\", \"parameters\": " +
                                     "{\"voice\": \"arnau\", \"sequence\": \"{{ my_test3 }}\"}}]";
         try {
             Map<String, Object> resp = manager.createTemplate(templateName, templateContent);
             Assert.assertNotNull(resp);
+            // Assert.assertEquals(expected, actual)
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -365,11 +360,11 @@ public class CanorisResourceManagerTest {
      */
     @Test
     public void testUpdateTemplate() {
-        String template = "[{\"operation\": \"vocaloid\", \"parameters\": {\"input\": \"{{ test3_GO }}\"}}]";
+        String template = "[{\"operation\": \"vocaloid\", \"parameters\": {\"input\": \"{{ test_delete }}\"}}]";
         try {
-            JsonNode resp = manager.updateTemplate(template, "test5");
+            JsonNode resp = manager.updateTemplate(template, "test_delete");
             Assert.assertNotNull(resp);
-            Assert.assertEquals("\"{{ test3_GO }}\"", resp.findValue("input").toString());
+            Assert.assertEquals("\"{{ test_delete }}\"", resp.findValue("input").toString());
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -384,7 +379,7 @@ public class CanorisResourceManagerTest {
     @Test
     public void testDeleteTemplate() {
         try {
-            manager.deleteTemplate("test5");
+            manager.deleteTemplate("test_delete");
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -392,19 +387,19 @@ public class CanorisResourceManagerTest {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         } catch (CanorisException e) {
-            e.printStackTrace();
+        	e.printStackTrace();
         }
     }
 
     // ------------------------ TASKS --------------------------------
     @Test
     public void testCreateTask() {
-        String taskContent = "{\"my_test1\": \"<melody ticklength='0.01'> "
+        String taskContent = "{\"my_xml\": \"<melody ticklength='0.01'> "
                                + "<note duration='45' pitch='58' velocity='110' phonemes='m a s'/> "
                                + "</melody>\"}";
 
         try {
-            Map<String,Object> response = manager.createTask("template", taskContent);
+            Map<String,Object> response = manager.createTask("test_template", taskContent);
             Assert.assertNotNull(response);
             taskId = (String) response.get("task_id");
             Assert.assertTrue(!"".equals(taskId));
@@ -424,7 +419,7 @@ public class CanorisResourceManagerTest {
         try {
             Map<String, Object> response = manager.getTask(taskId);
             Assert.assertNotNull(response);
-            // FIXME: this test will fail silently
+            Assert.assertEquals(this.taskId, response.get("key"));
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -477,14 +472,14 @@ public class CanorisResourceManagerTest {
     @Test
     public void testGetCollection() {
         try {
-            Map<String,Object> response = manager.getCollection("4dac2ae8229a4e6982ea01fde18c9f9d");
+            Map<String,Object> response = manager.getCollection(this.collectionKey);
             Assert.assertNotNull(response);
+            Assert.assertEquals(this.collectionKey, response.get("key"));
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (CanorisException e) {
             e.printStackTrace();
@@ -512,26 +507,10 @@ public class CanorisResourceManagerTest {
     @Test
     public void testGetCollectionFiles() {
         try {
-            Pager pager = manager.getCollectionFiles("4dac2ae8229a4e6982ea01fde18c9f9d");
+            Pager pager = manager.getCollectionFiles(this.collectionKey);
             Assert.assertNotNull(pager);
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (CanorisException e) {
-            e.printStackTrace();
-        }
-    }
-    @Test
-    public void testGetCollectionFile() {
-        CanorisFile file = new CanorisFile();
-        file.setKey("b03abca7553d4b0d958015219c522914");
-        String collectionKey = "4dac2ae8229a4e6982ea01fde18c9f9d";
-        try {
-            Map<String,Object> response = manager.getCollectionFile(collectionKey,file);
-            Assert.assertNotNull(response);
+            Assert.assertNotNull(pager.getRef());
+            Assert.assertTrue(!"".equals(pager.getRef()));
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -544,10 +523,26 @@ public class CanorisResourceManagerTest {
     }
     @Test
     public void testAddFileToCollection() {
-        CanorisFile file = new CanorisFile("b03abca7553d4b0d958015219c522914");
-        String collectionKey = "4dac2ae8229a4e6982ea01fde18c9f9d";
+        CanorisFile file = new CanorisFile(this.fileKey);
         try {
-            manager.addFileToCollection(collectionKey, file);
+            manager.addFileToCollection(this.collectionKey, file);
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (CanorisException e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    public void testGetCollectionFile() {
+        CanorisFile file = new CanorisFile(this.fileKey);
+        try {
+            Map<String,Object> response = manager.getCollectionFile(this.collectionKey,file);
+            Assert.assertNotNull(response);
+            Assert.assertEquals(this.fileKey, response.get("key"));
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -565,13 +560,12 @@ public class CanorisResourceManagerTest {
      */
     @Test
     public void testGetSimilaritySearch() {
-        CanorisFile file = new CanorisFile("b03abca7553d4b0d958015219c522914");
-        String collectionKey = "4dac2ae8229a4e6982ea01fde18c9f9d";
+        CanorisFile file = new CanorisFile(this.fileKey);
         String preset = "music";
         String results = "5";
 
         try {
-            manager.getSimilaritySearch(collectionKey, file, preset, results);
+            manager.getSimilaritySearch(this.collectionKey, file, preset, results);
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
